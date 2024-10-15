@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { cn, formatBytes } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Progress } from '@/components/ui/progress';
+import { Button } from '@/components/ui/button';
 
 interface FileUploaderProps extends React.HTMLAttributes<HTMLDivElement> {
   /**
@@ -159,7 +160,7 @@ export function FileUploader(props: FileUploaderProps) {
     if (!files) return;
     const newFiles = files.filter((_, i) => i !== index);
     setFiles(newFiles);
-    onValueChange?.(newFiles);
+    onValueChange?.(newFiles.length === 0 ? null : newFiles);
   }
 
   // Revoke preview url when component unmounts
@@ -239,7 +240,14 @@ export function FileUploader(props: FileUploaderProps) {
       {files?.length ? (
         <ScrollArea className='h-fit w-full px-3'>
           <div className='flex flex-col max-h-48 gap-4'>
-            {files?.map(file => <FileCard></FileCard>)}
+            {files?.map((file, index) => (
+              <FileCard
+                key={index}
+                file={file}
+                onRemove={() => onRemove(index)}
+                progress={progresses?.[file.name]}
+              />
+            ))}
           </div>
         </ScrollArea>
       ) : null}
@@ -256,19 +264,31 @@ interface FileCardProps {
 function FileCard({ file, onRemove, progress }: FileCardProps) {
   return (
     <div className='relative flex items-center gap-2.5'>
-      <div className='flex flex-1 gap-2.5'>
+      <div className='flex flex-1 gap-2.5 min-w-0'>
         {isFileWithPreview(file) ? <FilePreview file={file} /> : null}
-        <div className="flex w-full flex-col gap-2">
-          <div className="flex flex-col gap-px">
-            <p className="line-clamp-1 text-sm font-medium text-foreground/80 truncate">
+        <div className='flex w-full flex-col gap-2 min-w-0'>
+          <div className='flex flex-col gap-px'>
+            <p className='line-clamp-1 text-sm font-medium text-foreground/80 truncate'>
               {file.name}
             </p>
-            <p className="text-xs text-muted-foreground">
+            <p className='text-xs text-muted-foreground'>
               {formatBytes(file.size)}
             </p>
           </div>
           {progress ? <Progress value={progress} /> : null}
         </div>
+      </div>
+      <div className='flex-shrink-0'>
+        <Button
+          type='button'
+          variant='outline'
+          size='icon'
+          className='size-7'
+          onClick={onRemove}
+        >
+          <Cross2Icon className='size-4' aria-hidden='true' />
+          <span className='sr-only'>Remove file</span>
+        </Button>
       </div>
     </div>
   );

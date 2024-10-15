@@ -1,7 +1,6 @@
 import { FC, useEffect, useState } from 'react';
 import 'react-phone-number-input/style.css';
 
-const MAX_FILE_SIZE = 5_000_000;
 const ACCEPTED_IMAGE_TYPES = [
   'image/jpg',
   'image/jpeg',
@@ -30,6 +29,7 @@ import { useCreateWbOrder } from '@/features/wb-order-by-id';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { PhoneInput } from '@/components/phone-input';
+import { FileUploader } from '@/components/file-uploader';
 
 const FormSchema = z
   .object({
@@ -62,12 +62,12 @@ const FormSchema = z
         return value === undefined || value.length === 5;
       }, 'Код не заполнен!'),
     QR: z
-      .array(z.instanceof(File))
+      .array(z.custom<File>())
       .nullable()
       .optional()
       .refine(files => {
         return (
-          files === null || files?.every(file => file.size <= MAX_FILE_SIZE)
+          files === null || files?.every(file => file.size <= 1024 * 1024 * 5)
         );
       }, `Максимальный размер файла не должен превышать 5 мегабайт.`)
       .refine(
@@ -160,14 +160,18 @@ const WbOrderPage: FC = () => {
           onSubmit={form.handleSubmit(onSubmit)}
           className='w-full sm:max-w-screen-sm space-y-6 mx-auto'
         >
-          <div className="border rounded-md p-6">
-            <div className="flex flex-col space-y-1.5 mb-6">
-              <h3 className="font-semibold tracking-tight text-xl">Wildberries</h3>
-              <p className="text-sm text-muted-foreground">Введите информацию для оформления заказа.</p>
+          <div className='border rounded-md p-6'>
+            <div className='flex flex-col space-y-1.5 mb-6'>
+              <h3 className='font-semibold tracking-tight text-xl'>
+                Wildberries
+              </h3>
+              <p className='text-sm text-muted-foreground'>
+                Введите информацию для оформления заказа.
+              </p>
             </div>
 
-            <div className="space-y-4">
-              <div className='grid grid-cols-[repeat(auto-fill,_minmax(17rem,_1fr))] gap-1 gap-y-2'>
+            <div className='space-y-4'>
+              <div className='sm:grid sm:grid-cols-[repeat(auto-fill,_minmax(17rem,_1fr))] gap-1 gap-y-2'>
                 <FormField
                   control={form.control}
                   name='FLP'
@@ -181,7 +185,9 @@ const WbOrderPage: FC = () => {
                               const capitalizeFirstChars = (value: string) => {
                                 const words = value.split(' ');
                                 const capitalizedWorlds = words
-                                  .map(w => w.replace(/^./, w.at(0)?.toUpperCase()))
+                                  .map(w =>
+                                    w.replace(/^./, w.at(0)?.toUpperCase()),
+                                  )
                                   .join(' ');
                                 return capitalizedWorlds;
                               };
@@ -224,16 +230,29 @@ const WbOrderPage: FC = () => {
                   name='QR'
                   render={({ field }) => {
                     return (
-                      <FormItem>
+                      <FormItem className="sm:col-span-2">
                         <FormLabel>QR-код для получения заказа</FormLabel>
-                        <FormControl></FormControl>
+                        <FormControl>
+                          <FileUploader
+                            value={field.value}
+                            onValueChange={field.onChange}
+                            maxSize={1024 * 1024 * 5}
+                            // progresses={progresses}
+                            // pass the onUpload function here for direct upload
+                            // onUpload={uploadFiles}
+                            // disabled={isUploading}
+                          />
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
+                      // {uploadedFiles.length > 0 ? (
+                      //   <UploadedFilesCard uploadedFiles={uploadedFiles} />
+                      // ) : null}
                     );
                   }}
                 />
               </div>
-              <div className='grid grid-cols-[repeat(auto-fill,_minmax(17rem,_1fr))] gap-1 gap-y-2'>
+              <div className='sm:grid sm:grid-cols-[repeat(auto-fill,_minmax(17rem,_1fr))] gap-1 gap-y-2'>
                 <Button
                   className='w-full sm:w-auto col-start-1 col-end-2'
                   type='submit'
