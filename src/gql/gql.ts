@@ -20,9 +20,11 @@ const documents = {
     "\n    mutation RefreshToken {\n      refreshToken {\n        accessToken\n        refreshToken\n      }\n    }\n  ": types.RefreshTokenDocument,
     "\n    mutation Register($signupInput: SignupInput!) {\n      signup(signupInput: $signupInput) {\n        accessToken\n        refreshToken\n      }\n    }\n  ": types.RegisterDocument,
     "\n    mutation CreateWbOrder($input: WbOrderInput!) {\n      saveWbOrder(input: $input) {\n        id\n        name\n        phone\n        orderCode\n        qrCode\n        qrCodeFile\n        wbPhone\n        status\n      }\n    }\n  ": types.CreateWbOrderDocument,
+    "\n    mutation UpdateWbOrder($input: UpdateWbInput!) {\n      updateWbOrder(input: $input) {\n        id\n        name\n        phone\n        qrCode\n        orderCode\n        wbPhone\n        status\n        createdAt\n        updatedAt\n      }\n    }\n  ": types.UpdateWbOrderDocument,
     "\n    query WbOrderById($id: BigInt!) {\n      wbOrderById(id: $id) {\n        id\n        name\n        phone\n        qrCode\n        orderCode\n        wbPhone\n        status\n        createdAt\n        updatedAt\n      }\n    }\n  ": types.WbOrderByIdDocument,
     "\n    query WbOrders($input: WbOrdersInput!) {\n      wbOrders(input: $input) {\n        edges {\n          id\n          name\n          phone\n          qrCode\n          orderCode\n          wbPhone\n          status\n          createdAt\n          updatedAt\n        }\n        pageInfo {\n          endCursor\n          hasNextPage\n\n          startCursor\n          hasPreviousPage\n        }\n      }\n    }\n  ": types.WbOrdersDocument,
-    "\n          mutation RefreshToken {\n            refreshToken {\n              accessToken\n              refreshToken\n            }\n          }\n        ": types.RefreshTokenDocument,
+    "\n        mutation RefreshToken {\n          refreshToken {\n            accessToken\n            refreshToken\n          }\n        }\n      ": types.RefreshTokenDocument,
+    "\n    subscription NewWbOrderSubscription {\n      newWbOrder {\n        id\n        name\n        phone\n        qrCode\n        qrCodeFile\n        orderCode\n        wbPhone\n        status\n      }\n    }\n  ": types.NewWbOrderSubscriptionDocument,
 };
 
 /**
@@ -66,6 +68,10 @@ export function graphql(source: "\n    mutation CreateWbOrder($input: WbOrderInp
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
+export function graphql(source: "\n    mutation UpdateWbOrder($input: UpdateWbInput!) {\n      updateWbOrder(input: $input) {\n        id\n        name\n        phone\n        qrCode\n        orderCode\n        wbPhone\n        status\n        createdAt\n        updatedAt\n      }\n    }\n  "): (typeof documents)["\n    mutation UpdateWbOrder($input: UpdateWbInput!) {\n      updateWbOrder(input: $input) {\n        id\n        name\n        phone\n        qrCode\n        orderCode\n        wbPhone\n        status\n        createdAt\n        updatedAt\n      }\n    }\n  "];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
 export function graphql(source: "\n    query WbOrderById($id: BigInt!) {\n      wbOrderById(id: $id) {\n        id\n        name\n        phone\n        qrCode\n        orderCode\n        wbPhone\n        status\n        createdAt\n        updatedAt\n      }\n    }\n  "): (typeof documents)["\n    query WbOrderById($id: BigInt!) {\n      wbOrderById(id: $id) {\n        id\n        name\n        phone\n        qrCode\n        orderCode\n        wbPhone\n        status\n        createdAt\n        updatedAt\n      }\n    }\n  "];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
@@ -74,7 +80,11 @@ export function graphql(source: "\n    query WbOrders($input: WbOrdersInput!) {\
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n          mutation RefreshToken {\n            refreshToken {\n              accessToken\n              refreshToken\n            }\n          }\n        "): (typeof documents)["\n          mutation RefreshToken {\n            refreshToken {\n              accessToken\n              refreshToken\n            }\n          }\n        "];
+export function graphql(source: "\n        mutation RefreshToken {\n          refreshToken {\n            accessToken\n            refreshToken\n          }\n        }\n      "): (typeof documents)["\n        mutation RefreshToken {\n          refreshToken {\n            accessToken\n            refreshToken\n          }\n        }\n      "];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n    subscription NewWbOrderSubscription {\n      newWbOrder {\n        id\n        name\n        phone\n        qrCode\n        qrCodeFile\n        orderCode\n        wbPhone\n        status\n      }\n    }\n  "): (typeof documents)["\n    subscription NewWbOrderSubscription {\n      newWbOrder {\n        id\n        name\n        phone\n        qrCode\n        qrCodeFile\n        orderCode\n        wbPhone\n        status\n      }\n    }\n  "];
 
 export function graphql(source: string) {
   return (documents as any)[source] ?? {};

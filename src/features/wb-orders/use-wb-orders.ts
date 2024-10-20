@@ -1,8 +1,8 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import { graphql } from '../../gql';
-import { WbOrdersQuery } from '../../gql/graphql';
-import { InitialDataOptions } from '../../utils/graphql/initial-data-options';
-import { client } from '../../graphql-client';
+import { graphql } from '@/gql';
+import { WbOrdersQuery } from '@/gql/graphql';
+import { InitialDataOptions } from '@/utils/graphql/initial-data-options';
+import { client } from '@/graphql/graphql-request';
 
 type UseWbOrdersProps = {
   take?: number;

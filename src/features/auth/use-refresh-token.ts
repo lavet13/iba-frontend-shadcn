@@ -1,10 +1,10 @@
-import { UseMutationOptions, useMutation } from "@tanstack/react-query";
-import { RefreshTokenMutation } from "../../gql/graphql";
-import { graphql } from "../../gql";
-import { client } from "../../graphql-client";
+import { UseMutationOptions, useMutation } from '@tanstack/react-query';
+import { RefreshTokenMutation } from '@/gql/graphql';
+import { graphql } from '@/gql';
+import { client } from '@/graphql/graphql-request';
 
 export const useRefreshToken = (
-  options?: UseMutationOptions<RefreshTokenMutation>
+  options?: UseMutationOptions<RefreshTokenMutation>,
 ) => {
   const refreshToken = graphql(`
     mutation RefreshToken {

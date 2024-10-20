@@ -1,11 +1,9 @@
-import { UseMutationOptions, useMutation } from "@tanstack/react-query";
-import { LogoutMutation } from "../../gql/graphql";
-import { graphql } from "../../gql";
-import { client } from "../../graphql-client";
+import { UseMutationOptions, useMutation } from '@tanstack/react-query';
+import { LogoutMutation } from '@/gql/graphql';
+import { graphql } from '@/gql';
+import { client } from '@/graphql/graphql-request';
 
-export const useLogout = (
-  options?: UseMutationOptions<LogoutMutation>
-) => {
+export const useLogout = (options?: UseMutationOptions<LogoutMutation>) => {
   const logoutMutation = graphql(`
     mutation Logout {
       logout

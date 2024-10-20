@@ -1,21 +1,12 @@
 import { FC, useEffect, useState } from 'react';
-import 'react-phone-number-input/style.css';
-
-const ACCEPTED_IMAGE_TYPES = [
-  'image/jpg',
-  'image/jpeg',
-  'image/png',
-  'image/webp',
-];
 
 import { toast } from 'sonner';
-import PhoneInputWithCountrySelect, {
-  isPossiblePhoneNumber,
-} from 'react-phone-number-input';
+import { isPossiblePhoneNumber } from 'react-phone-number-input';
 import ru from 'react-phone-number-input/locale/ru.json';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { z } from 'zod';
+
 import {
   Form,
   FormControl,
@@ -28,8 +19,15 @@ import {
 import { useCreateWbOrder } from '@/features/wb-order-by-id';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Loader2 } from 'lucide-react';
 import { PhoneInput } from '@/components/phone-input';
 import { FileUploader } from '@/components/file-uploader';
+import {
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSlot,
+} from '@/components/ui/input-otp';
+import { useNewWbOrderSubscriber } from '@/hooks/use-new-wb-order-subscriber';
 
 const FormSchema = z
   .object({
@@ -54,42 +52,51 @@ const FormSchema = z
       .refine(
         value => value === undefined || isPossiblePhoneNumber(value),
         'Проверьте пожалуйста еще раз! Телефон не заполнен до конца!',
-      ),
+      )
+      .or(z.literal('')),
     orderCode: z
       .string({ required_error: 'Код заказа обязателен к заполнению!' })
+      .length(5, 'Код должен содержать 5 символов!')
       .optional()
-      .refine(value => {
-        return value === undefined || value.length === 5;
-      }, 'Код не заполнен!'),
-    QR: z
-      .array(z.custom<File>())
-      .nullable()
-      .optional()
-      .refine(files => {
-        return (
-          files === null || files?.every(file => file.size <= 1024 * 1024 * 5)
-        );
-      }, `Максимальный размер файла не должен превышать 5 мегабайт.`)
-      .refine(
-        files =>
-          files === null ||
-          files?.every(file => ACCEPTED_IMAGE_TYPES.includes(file.type)),
-        '.jpg, .jpeg, .png, .webp расширения файла необходимо прикреплять!',
-      ),
+      .or(z.literal('')),
+    QR: z.array(z.instanceof(File)),
   })
-  .refine(
-    data => {
-      const isWbFilled = !!data.wbPhone && !!data.orderCode;
-      const isQRFilled = !!data.QR;
+  .superRefine((val, ctx) => {
+    const isWbEmpty = !val.wbPhone && !val.orderCode;
+    const isWbFilled = !!val.wbPhone && !!val.orderCode;
+    // const isNotWbFilled = !val.wbPhone || !val.orderCode;
+    // const isNotWbFilled = !(val.wbPhone && val.orderCode);
+    const isQRFilled = !!val.QR && val.QR.length > 0;
 
-      return isWbFilled || isQRFilled;
-    },
-    {
-      message:
-        'Заполните либо (Телефон Wb и Код для получения заказа), либо прикрепите QR-код, либо все вместе',
-      path: ['QR'],
-    },
-  );
+    if (isQRFilled && isWbEmpty) {
+      return z.NEVER;
+    }
+
+    if (!isQRFilled) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['QR'],
+        message:
+          'Прикрепите QR-код заказа или укажите `Телефон WB` и `Код подтверждения заказа`',
+      });
+    }
+
+    if (!isWbFilled && !val.wbPhone) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['wbPhone'],
+        message: 'Заполните Телефон WB',
+      });
+    }
+
+    if (!isWbFilled && !val.orderCode) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['orderCode'],
+        message: 'Заполните Код подтверждения заказа',
+      });
+    }
+  });
 
 type DefaultValues = z.infer<typeof FormSchema>;
 
@@ -98,7 +105,7 @@ const defaultValues: DefaultValues = {
   wbPhone: '',
   FLP: '',
   orderCode: '',
-  QR: null,
+  QR: [],
 };
 
 const WbOrderPage: FC = () => {
@@ -109,12 +116,37 @@ const WbOrderPage: FC = () => {
   });
 
   const formState = form.formState;
+  const values = form.getValues();
+  const isSubmitting = formState.isSubmitting;
 
   console.log({
     errors: formState.errors,
     dirtyFields: formState.dirtyFields,
     formState,
+    values,
   });
+
+  useEffect(() => {
+    const subscription = form.watch((value, { name, type }) => {
+      console.log({ value, name, type });
+
+      if (name === 'QR') {
+        form.trigger(['orderCode', 'wbPhone']);
+      }
+      if(name === 'orderCode') {
+        form.trigger('wbPhone');
+        form.trigger('QR');
+      }
+      if(name === 'wbPhone') {
+        form.trigger('orderCode');
+        form.trigger('QR');
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [form.watch, form.trigger]);
 
   const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
 
@@ -144,17 +176,24 @@ const WbOrderPage: FC = () => {
     }
   }, [data]);
 
-  const onSubmit: SubmitHandler<DefaultValues> = data => {
-    console.log({ data });
-    toast(
-      <pre className='mt-2 w-[340px] rounded-md bg-slate-950 p-4'>
-        <code className='text-white'>{JSON.stringify(data, null, 2)}</code>
-      </pre>,
-    );
+  const onSubmit: SubmitHandler<DefaultValues> = async data => {
+    const createdOrder = await createOrder({
+      input: {
+        ...data,
+        QR: data.QR?.[0] ?? null,
+      },
+    });
+
+    form.reset();
+
+    toast.success('Заявка оформлена!');
   };
 
+  const { newOrder, error } = useNewWbOrderSubscriber();
+  console.log({ newOrder, error });
+
   return (
-    <div className='container sm:mt-5'>
+    <div className='container mt-5 mb-10'>
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
@@ -171,7 +210,7 @@ const WbOrderPage: FC = () => {
             </div>
 
             <div className='space-y-4'>
-              <div className='sm:grid sm:grid-cols-[repeat(auto-fill,_minmax(17rem,_1fr))] gap-1 gap-y-2'>
+              <div className='sm:grid sm:grid-cols-[repeat(auto-fill,_minmax(17rem,_1fr))] space-y-3 sm:space-y-0 sm:gap-1 sm:gap-y-2'>
                 <FormField
                   control={form.control}
                   name='FLP'
@@ -186,7 +225,10 @@ const WbOrderPage: FC = () => {
                                 const words = value.split(' ');
                                 const capitalizedWorlds = words
                                   .map(w =>
-                                    w.replace(/^./, w.at(0)?.toUpperCase()),
+                                    w.replace(
+                                      /^./,
+                                      (w.at(0) as string)?.toUpperCase(),
+                                    ),
                                   )
                                   .join(' ');
                                 return capitalizedWorlds;
@@ -228,15 +270,18 @@ const WbOrderPage: FC = () => {
                 <FormField
                   control={form.control}
                   name='QR'
-                  render={({ field }) => {
+                  render={({ field: { value, onChange, ref, ...field } }) => {
+                    console.log({ field });
                     return (
-                      <FormItem className="sm:col-span-2">
+                      <FormItem className='sm:col-span-2'>
                         <FormLabel>QR-код для получения заказа</FormLabel>
                         <FormControl>
                           <FileUploader
-                            value={field.value}
-                            onValueChange={field.onChange}
-                            maxSize={1024 * 1024 * 5}
+                            value={value}
+                            onValueChange={onChange}
+                            maxSize={1024 * 1024 * 10} // 10 MB
+                            innerRef={ref}
+                            {...field}
                             // progresses={progresses}
                             // pass the onUpload function here for direct upload
                             // onUpload={uploadFiles}
@@ -251,13 +296,68 @@ const WbOrderPage: FC = () => {
                     );
                   }}
                 />
+                <FormField
+                  control={form.control}
+                  name='orderCode'
+                  render={({ field }) => {
+                    return (
+                      <FormItem>
+                        <FormLabel>Код для получения заказа</FormLabel>
+                        <FormControl>
+                          <InputOTP {...field} maxLength={5}>
+                            <InputOTPGroup>
+                              <InputOTPSlot index={0} />
+                              <InputOTPSlot index={1} />
+                              <InputOTPSlot index={2} />
+                              <InputOTPSlot index={3} />
+                              <InputOTPSlot index={4} />
+                            </InputOTPGroup>
+                          </InputOTP>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    );
+                  }}
+                />
+                <FormField
+                  control={form.control}
+                  name='wbPhone'
+                  render={({ field }) => {
+                    return (
+                      <FormItem>
+                        <FormLabel>Телефон Wildberries</FormLabel>
+                        <FormControl>
+                          <PhoneInput
+                            countries={['RU']}
+                            international
+                            labels={ru}
+                            countryCallingCodeEditable={false}
+                            defaultCountry={'RU'}
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    );
+                  }}
+                />
               </div>
               <div className='sm:grid sm:grid-cols-[repeat(auto-fill,_minmax(17rem,_1fr))] gap-1 gap-y-2'>
                 <Button
-                  className='w-full sm:w-auto col-start-1 col-end-2'
+                  disabled={isSubmitting}
+                  className={
+                    'w-full sm:w-auto col-start-1 col-end-2 [&_svg]:size-4'
+                  }
                   type='submit'
                 >
-                  Зарегестрировать
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className='animate-spin' />
+                      Пожалуйста подождите
+                    </>
+                  ) : (
+                    'Зарегестрировать'
+                  )}
                 </Button>
               </div>
             </div>

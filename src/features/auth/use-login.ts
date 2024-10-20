@@ -1,10 +1,10 @@
-import { UseMutationOptions, useMutation } from "@tanstack/react-query";
-import { LoginMutation, LoginMutationVariables } from "../../gql/graphql";
-import { graphql } from "../../gql";
-import { client } from "../../graphql-client";
+import { UseMutationOptions, useMutation } from '@tanstack/react-query';
+import { LoginMutation, LoginMutationVariables } from '@/gql/graphql';
+import { graphql } from '@/gql';
+import { client } from '@/graphql/graphql-request';
 
 export const useLogin = (
-  options?: UseMutationOptions<LoginMutation, Error, LoginMutationVariables>
+  options?: UseMutationOptions<LoginMutation, Error, LoginMutationVariables>,
 ) => {
   const login = graphql(`
     mutation Login($loginInput: LoginInput!) {

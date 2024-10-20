@@ -86,6 +86,8 @@ interface FileUploaderProps extends React.HTMLAttributes<HTMLDivElement> {
    * @example disabled
    */
   disabled?: boolean;
+
+  innerRef: (instance: any) => void;
 }
 
 export function FileUploader(props: FileUploaderProps) {
@@ -100,6 +102,7 @@ export function FileUploader(props: FileUploaderProps) {
     multiple = false,
     disabled = false,
     className,
+    innerRef,
     ...dropzoneProps
   } = props;
 
@@ -160,7 +163,6 @@ export function FileUploader(props: FileUploaderProps) {
     if (!files) return;
     const newFiles = files.filter((_, i) => i !== index);
     setFiles(newFiles);
-    onValueChange?.(newFiles.length === 0 ? null : newFiles);
   }
 
   // Revoke preview url when component unmounts
@@ -187,17 +189,18 @@ export function FileUploader(props: FileUploaderProps) {
         multiple={maxFileCount > 1 || multiple}
         disabled={isDisabled}
       >
-        {({ isDragActive, getRootProps, getInputProps }) => (
+        {({ isDragActive, getRootProps, getInputProps }) => { return (
           <div
             {...getRootProps()}
             className={cn(
-              'group relative grid h-52 w-full cursor-pointer place-items-center rounded-lg border-2 border-dashed border-muted-foreground/25 px-5 py-2.5 text-center transition hover:bg-muted/25',
-              'ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+              'group relative grid h-52 w-full cursor-pointer place-items-center rounded-lg border-2 border-dashed border-muted-foreground/25 px-5 py-2.5 text-center transition hover:bg-muted/25 hover:border-primary/25',
+              'ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:border-primary focus:bg-muted/25 focus:border-muted-foreground/50',
               isDragActive && 'border-muted-foreground/50',
               isDisabled && 'pointer-events-none opacity-60',
               className,
             )}
             {...dropzoneProps}
+            ref={innerRef}
           >
             <input {...getInputProps()} />
             {isDragActive ? (
@@ -235,7 +238,7 @@ export function FileUploader(props: FileUploaderProps) {
               </div>
             )}
           </div>
-        )}
+        )}}
       </Dropzone>
       {files?.length ? (
         <ScrollArea className='h-fit w-full px-3'>

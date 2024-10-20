@@ -32,6 +32,8 @@
     "framer-motion": "^11.11.1",
     "graphql": "^16.9.0",
     "graphql-request": "^7.1.0",
+    "graphql-sse": "^2.5.3",
+    "input-otp": "^1.2.4",
     "lodash-es": "^4.17.21",
     "lucide-react": "^0.451.0",
     "next-themes": "^0.3.0",
@@ -50,6 +52,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.11.1",
+    "@types/lodash-es": "^4.17.12",
     "@types/node": "^22.7.4",
     "@types/react": "^18.3.10",
     "@types/react-dom": "^18.3.0",

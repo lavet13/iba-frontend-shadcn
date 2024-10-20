@@ -1,11 +1,11 @@
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { graphql } from '../../gql';
-import { MeQuery } from '../../gql/graphql';
-import { client } from '../../graphql-client';
-import queryClient from '../../react-query/query-client';
-import { InitialDataOptions } from '../../utils/graphql/initial-data-options';
-import { isGraphQLRequestError } from '../../utils/graphql/is-graphql-request-error';
+import { graphql } from '@/gql';
+import { MeQuery } from '@/gql/graphql';
+import { client } from '@/graphql/graphql-request';
+import { client as queryClient } from '@/react-query';
+import { InitialDataOptions } from '@/utils/graphql/initial-data-options';
+import { isGraphQLRequestError } from '@/utils/graphql/is-graphql-request-error';
 
 export const useGetMe = (options?: InitialDataOptions<MeQuery>) => {
   const navigate = useNavigate();

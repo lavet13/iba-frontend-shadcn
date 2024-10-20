@@ -1,10 +1,17 @@
-import { UseMutationOptions, useMutation } from "@tanstack/react-query";
-import { CreateWbOrderMutation, CreateWbOrderMutationVariables } from "../../gql/graphql";
-import { graphql } from "../../gql";
-import { client } from "../../graphql-client";
+import { UseMutationOptions, useMutation } from '@tanstack/react-query';
+import {
+  CreateWbOrderMutation,
+  CreateWbOrderMutationVariables,
+} from '@/gql/graphql';
+import { graphql } from '@/gql';
+import { client } from '@/graphql/graphql-request';
 
 export const useCreateWbOrder = (
-  options?: UseMutationOptions<CreateWbOrderMutation, Error, CreateWbOrderMutationVariables>
+  options?: UseMutationOptions<
+    CreateWbOrderMutation,
+    Error,
+    CreateWbOrderMutationVariables
+  >,
 ) => {
   const createWbOrder = graphql(`
     mutation CreateWbOrder($input: WbOrderInput!) {
@@ -28,5 +35,3 @@ export const useCreateWbOrder = (
     ...options,
   });
 };
-
-
