@@ -38,7 +38,6 @@ const PhoneInput: React.ForwardRefExoticComponent<PhoneInputProps> =
     ({ className, onChange, ...props }, ref) => {
       return (
         <RPNInput.default
-          ref={ref}
           className={cn('flex', className)}
           flagComponent={FlagComponent}
           countrySelectComponent={CountrySelect}
@@ -54,6 +53,7 @@ const PhoneInput: React.ForwardRefExoticComponent<PhoneInputProps> =
            */
           onChange={value => onChange?.(value || '')}
           {...props}
+          ref={ref}
         />
       );
     },

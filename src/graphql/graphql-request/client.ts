@@ -1,4 +1,11 @@
-import { gql, GraphQLClient, RequestDocument, RawRequestOptions, Variables, RequestOptions } from 'graphql-request';
+import {
+  gql,
+  GraphQLClient,
+  RequestDocument,
+  RawRequestOptions,
+  Variables,
+  RequestOptions,
+} from 'graphql-request';
 type GraphQLClientRequestHeaders = RawRequestOptions['requestHeaders'];
 import { TypedDocumentNode } from '@graphql-typed-document-node/core';
 import { RefreshTokenMutation } from '@/gql/graphql';
@@ -26,6 +33,8 @@ class AuthenticatedGraphQLClient extends GraphQLClient {
       | RequestOptions<V, T>,
     ...variablesAndRequestHeaders: any[]
   ): Promise<T> {
+    console.log({ variablesAndRequestHeaders });
+
     try {
       return await (super.request as any)(
         documentOrOptions,
@@ -79,5 +88,69 @@ export const client = new AuthenticatedGraphQLClient(
     requestMiddleware: requestMiddlewareUploadFiles,
     mode: 'cors',
     credentials: 'include',
+    async fetch(url, opts = {}) {
+      return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open(opts.method || 'GET', url as string, true);
+
+        // Set headers
+        if (opts.headers) {
+          Object.entries(opts.headers).forEach(([key, value]) => {
+            xhr.setRequestHeader(key, value);
+          });
+        }
+
+        // Track upload progress
+        xhr.upload.onprogress = event => {
+          if (event.lengthComputable) {
+            const percentComplete = (event.loaded / event.total) * 100;
+
+            if (opts.progressCallback) {
+              opts.progressCallback(percentComplete.toFixed());
+            }
+          }
+        };
+
+        // Handle response
+        xhr.onload = () => {
+          const headers = parseHeaders(xhr.getAllResponseHeaders());
+          const responseBody = xhr.responseText;
+
+          const response = new Response(responseBody, {
+            status: xhr.status,
+            statusText: xhr.statusText,
+            headers: headers,
+          });
+
+          resolve(response);
+        };
+
+        // Handle errors
+        xhr.onerror = () => reject(new TypeError('Network request failed'));
+        xhr.ontimeout = () =>
+          reject(new TypeError('Network request timed out'));
+        xhr.onabort = () => reject(new TypeError('Network request aborted'));
+
+        // Send the request
+        xhr.send((opts.body as XMLHttpRequestBodyInit) || null);
+      });
+    },
   },
 );
+
+// Utility function to parse headers from the XHR response
+function parseHeaders(headerStr: string) {
+  const headers = new Headers();
+  if (!headerStr) {
+    return headers;
+  }
+  const headerPairs = headerStr.split('\u000d\u000a');
+  for (const header of headerPairs) {
+    const [key, ...rest] = header.split(': ');
+    const value = rest.join(': ');
+    if (key) {
+      headers.append(key, value);
+    }
+  }
+  return headers;
+}

@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import { MoonIcon, SunIcon } from "@radix-ui/react-icons"
+import { CheckIcon, LaptopIcon, MoonIcon, SunIcon } from '@radix-ui/react-icons';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -7,9 +7,10 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useTheme } from '@/components/theme-provider';
+import { cn } from '@/lib/utils';
 
 export function ModeToggle() {
-  const { setTheme } = useTheme();
+  const { setTheme, theme } = useTheme();
 
   return (
     <DropdownMenu>
@@ -21,14 +22,32 @@ export function ModeToggle() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align='end'>
-        <DropdownMenuItem onClick={() => setTheme('light')}>
-          Светлая
+        <DropdownMenuItem className="transition-none" onClick={() => setTheme('light')}>
+          <SunIcon className='mr-2 size-4' /> Светлая
+          <CheckIcon
+            className={cn(
+              'ml-auto h-4 w-4',
+              theme === 'light' ? 'visible' : 'invisible',
+            )}
+          />
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme('dark')}>
-          Темная
+        <DropdownMenuItem className="transition-none" onClick={() => setTheme('dark')}>
+          <MoonIcon className='mr-2 size-4' /> Темная
+          <CheckIcon
+            className={cn(
+              'ml-auto h-4 w-4',
+              theme === 'dark' ? 'visible' : 'invisible',
+            )}
+          />
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme('system')}>
-          Системная
+        <DropdownMenuItem className="transition-none" onClick={() => setTheme('system')}>
+          <LaptopIcon className="mr-2 size-4" /> Системная
+          <CheckIcon
+            className={cn(
+              'ml-2 h-4 w-4',
+              theme === 'system' ? 'visible' : 'invisible',
+            )}
+          />
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

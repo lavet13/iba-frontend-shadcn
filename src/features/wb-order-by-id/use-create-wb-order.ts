@@ -5,14 +5,39 @@ import {
 } from '@/gql/graphql';
 import { graphql } from '@/gql';
 import { client } from '@/graphql/graphql-request';
+import { useCallback, useState } from 'react';
+
+interface UploadProgress {
+  percent: number;
+  isComplete: boolean;
+}
 
 export const useCreateWbOrder = (
-  options?: UseMutationOptions<
+  options: UseMutationOptions<
     CreateWbOrderMutation,
     Error,
     CreateWbOrderMutationVariables
-  >,
+  > = {},
 ) => {
+  const [uploadProgress, setUploadProgress] = useState<UploadProgress>({
+    percent: 0,
+    isComplete: false,
+  });
+
+  const handleProgress = useCallback((percent: number) => {
+    setUploadProgress({
+      percent: Number(percent),
+      isComplete: Number(percent) === 100,
+    });
+  }, []);
+
+  const resetProgress = useCallback(() => {
+    setUploadProgress({
+      percent: 0,
+      isComplete: false
+    });
+  }, [])
+
   const createWbOrder = graphql(`
     mutation CreateWbOrder($input: WbOrderInput!) {
       saveWbOrder(input: $input) {
@@ -28,10 +53,17 @@ export const useCreateWbOrder = (
     }
   `);
 
-  return useMutation({
-    mutationFn: (variables: CreateWbOrderMutationVariables) => {
-      return client.request(createWbOrder, variables);
-    },
-    ...options,
-  });
+  return {
+    ...useMutation({
+      mutationFn: (variables: CreateWbOrderMutationVariables) => {
+        return client.request(createWbOrder, {
+          ...variables,
+          progressCallback: handleProgress,
+        });
+      },
+      ...options,
+    }),
+    uploadProgress,
+    resetProgress,
+  };
 };

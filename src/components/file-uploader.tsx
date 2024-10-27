@@ -87,6 +87,12 @@ interface FileUploaderProps extends React.HTMLAttributes<HTMLDivElement> {
    */
   disabled?: boolean;
 
+  /**
+   * To properly focus on dropzone
+   * @type (instance: any) => void
+   * @default undefined
+   * @example innerRef={ref}
+   */
   innerRef: (instance: any) => void;
 }
 
@@ -119,7 +125,7 @@ export function FileUploader(props: FileUploaderProps) {
       }
 
       if ((files?.length ?? 0) + acceptedFiles.length > maxFileCount) {
-        toast.error(`Cannot upload more than ${maxFileCount} files`);
+        toast.error(`Нельзя загрузить более ${maxFileCount} файлов`);
         return;
       }
 
@@ -134,7 +140,7 @@ export function FileUploader(props: FileUploaderProps) {
       if (rejectedFiles.length > 0) {
         rejectedFiles.forEach(({ file, errors }) => {
           console.log({ errors, file });
-          toast.error(`File ${file.name} was rejected`);
+          toast.error(`Файл ${file.name} был отклонен`);
         });
       }
 
@@ -144,15 +150,17 @@ export function FileUploader(props: FileUploaderProps) {
         updatedFiles.length <= maxFileCount
       ) {
         const target =
-          updatedFiles.length > 0 ? `${updatedFiles.length} files` : `file`;
+          updatedFiles.length > 0
+            ? `${updatedFiles.length} файла`
+            : updatedFiles.length > 1 && `файлов`;
 
         toast.promise(onUpload(updatedFiles), {
-          loading: `Uploading ${target}...`,
+          loading: `Загрузка ${target}...`,
           success: () => {
             setFiles([]);
-            return `${target} uploaded`;
+            return `${target} загружено`;
           },
-          error: `Failed to upload ${target}`,
+          error: `Не удалось загрузить ${target}`,
         });
       }
     },
@@ -189,56 +197,61 @@ export function FileUploader(props: FileUploaderProps) {
         multiple={maxFileCount > 1 || multiple}
         disabled={isDisabled}
       >
-        {({ isDragActive, getRootProps, getInputProps }) => { return (
-          <div
-            {...getRootProps()}
-            className={cn(
-              'group relative grid h-52 w-full cursor-pointer place-items-center rounded-lg border-2 border-dashed border-muted-foreground/25 px-5 py-2.5 text-center transition hover:bg-muted/25 hover:border-primary/25',
-              'ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:border-primary focus:bg-muted/25 focus:border-muted-foreground/50',
-              isDragActive && 'border-muted-foreground/50',
-              isDisabled && 'pointer-events-none opacity-60',
-              className,
-            )}
-            {...dropzoneProps}
-            ref={innerRef}
-          >
-            <input {...getInputProps()} />
-            {isDragActive ? (
-              <div className='flex flex-col items-center justify-center gap-4 sm:px-5'>
-                <div className='rounded-full border border-dashed p-3'>
-                  <UploadIcon
-                    className='size-7 text-muted-foreground'
-                    aria-hidden='true'
-                  />
-                </div>
-                <p className='font-medium text-muted-foreground'>
-                  Drop the files here
-                </p>
+        {({ isDragActive, getRootProps, getInputProps }) => {
+          return (
+            <div
+              {...getRootProps()}
+              className={cn(
+                'group relative grid min-h-52 w-full cursor-pointer place-items-center rounded-lg border-2 border-dashed border-muted-foreground/25 px-5 py-4 sm:py-2.5 text-center transition hover:bg-muted/25',
+                'ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus:border-muted-foreground/50',
+                isDragActive && 'border-muted-foreground/50',
+                isDisabled && 'pointer-events-none opacity-60',
+                className,
+              )}
+              {...dropzoneProps}
+              ref={innerRef}
+            >
+              <input {...getInputProps()} />
+              <div className='pointer-events-none absolute flex flex-col items-center justify-center gap-4 sm:px-5 inset-0 z-10'>
+                {isDragActive ? (
+                  <>
+                    <div className='rounded-full border border-dashed p-3'>
+                      <UploadIcon
+                        className='size-5 sm:size-7 text-muted-foreground'
+                        aria-hidden='true'
+                      />
+                    </div>
+                    <p className='font-medium text-muted-foreground'>
+                      Отпустите кнопку мыши, чтобы прикрепить фото
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <div className='rounded-full border border-dashed p-3'>
+                      <UploadIcon
+                        className='size-5 sm:size-7 text-muted-foreground'
+                        aria-hidden='true'
+                      />
+                    </div>
+                    <div className='flex flex-col gap-1 sm:gap-px'>
+                      <p className='font-medium text-muted-foreground'>
+                        Перетащите файл{maxFileCount > 1 ? 'ы' : ''} или нажмите
+                        здесь для выбора {maxFileCount > 1 ? 'файлов' : 'файла'}
+                      </p>
+                      <p className='text-sm text-muted-foreground/70'>
+                        Вы можете загрузить{' '}
+                        {maxFileCount > 1
+                          ? ` ${maxFileCount === Infinity ? 'неограниченное количество' : maxFileCount}
+                        ${maxFileCount > 4 ? 'файлов' : 'файла'} (размером до ${formatBytes(maxSize)} каждый)`
+                          : `файл размером до ${formatBytes(maxSize)}`}
+                      </p>
+                    </div>
+                  </>
+                )}
               </div>
-            ) : (
-              <div className='flex flex-col items-center justify-center gap-4 sm:px-5'>
-                <div className='rounded-full border border-dashed p-3'>
-                  <UploadIcon
-                    className='size-7 text-muted-foreground'
-                    aria-hidden='true'
-                  />
-                </div>
-                <div className='flex flex-col gap-px'>
-                  <p className='font-medium text-muted-foreground'>
-                    Drag {`'n'`} drop files here, or click to select files
-                  </p>
-                  <p className='text-sm text-muted-foreground/70'>
-                    You can upload
-                    {maxFileCount > 1
-                      ? ` ${maxFileCount === Infinity ? 'multiple' : maxFileCount}
-                      files (up to ${formatBytes(maxSize)} each)`
-                      : ` a file with ${formatBytes(maxSize)}`}
-                  </p>
-                </div>
-              </div>
-            )}
-          </div>
-        )}}
+            </div>
+          );
+        }}
       </Dropzone>
       {files?.length ? (
         <ScrollArea className='h-fit w-full px-3'>

@@ -19,7 +19,6 @@ import {
 import { useCreateWbOrder } from '@/features/wb-order-by-id';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Loader2 } from 'lucide-react';
 import { PhoneInput } from '@/components/phone-input';
 import { FileUploader } from '@/components/file-uploader';
 import {
@@ -28,6 +27,9 @@ import {
   InputOTPSlot,
 } from '@/components/ui/input-otp';
 import { useNewWbOrderSubscriber } from '@/hooks/use-new-wb-order-subscriber';
+import { isGraphQLRequestError } from '@/utils/graphql/is-graphql-request-error';
+import CircularProgress from '@/components/circular-progress';
+import { cn } from '@/lib/utils';
 
 const FormSchema = z
   .object({
@@ -69,6 +71,10 @@ const FormSchema = z
     const isQRFilled = !!val.QR && val.QR.length > 0;
 
     if (isQRFilled && isWbEmpty) {
+      return z.NEVER;
+    }
+
+    if (!isQRFilled && isWbFilled) {
       return z.NEVER;
     }
 
@@ -133,11 +139,11 @@ const WbOrderPage: FC = () => {
       if (name === 'QR') {
         form.trigger(['orderCode', 'wbPhone']);
       }
-      if(name === 'orderCode') {
+      if (name === 'orderCode') {
         form.trigger('wbPhone');
         form.trigger('QR');
       }
-      if(name === 'wbPhone') {
+      if (name === 'wbPhone') {
         form.trigger('orderCode');
         form.trigger('QR');
       }
@@ -149,8 +155,14 @@ const WbOrderPage: FC = () => {
   }, [form.watch, form.trigger]);
 
   const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
+  console.log({ qrCodeUrl });
 
-  const { mutateAsync: createOrder, data } = useCreateWbOrder();
+  const {
+    mutateAsync: createOrder,
+    data,
+    uploadProgress,
+    resetProgress,
+  } = useCreateWbOrder();
 
   useEffect(() => {
     if (data?.saveWbOrder.qrCodeFile) {
@@ -177,16 +189,28 @@ const WbOrderPage: FC = () => {
   }, [data]);
 
   const onSubmit: SubmitHandler<DefaultValues> = async data => {
-    const createdOrder = await createOrder({
-      input: {
-        ...data,
-        QR: data.QR?.[0] ?? null,
-      },
-    });
+    try {
+      await createOrder({
+        input: {
+          ...data,
+          QR: data.QR?.[0] ?? null,
+        },
+      });
 
-    form.reset();
+      form.reset();
 
-    toast.success('Заявка оформлена!');
+      toast.success('Заявка оформлена!', { position: 'bottom-center' });
+      resetProgress();
+    } catch (error) {
+      console.error(error);
+      if (isGraphQLRequestError(error)) {
+        toast.error(error.response.errors[0].message, {
+          position: 'bottom-center',
+        });
+      } else if (error instanceof Error) {
+        toast.error(error.message, { position: 'bottom-center' });
+      }
+    }
   };
 
   const { newOrder, error } = useNewWbOrderSubscriber();
@@ -345,14 +369,21 @@ const WbOrderPage: FC = () => {
               <div className='sm:grid sm:grid-cols-[repeat(auto-fill,_minmax(17rem,_1fr))] gap-1 gap-y-2'>
                 <Button
                   disabled={isSubmitting}
-                  className={
-                    'w-full sm:w-auto col-start-1 col-end-2 [&_svg]:size-4'
-                  }
+                  className={'w-full sm:w-auto col-start-1 col-end-2'}
                   type='submit'
                 >
                   {isSubmitting ? (
                     <>
-                      <Loader2 className='animate-spin' />
+                      <CircularProgress
+                        value={uploadProgress.percent}
+                        strokeWidth={3}
+                        className={cn(
+                          'h-4',
+                          uploadProgress.percent < 100
+                            ? 'w-4 mr-2 scale-1'
+                            : 'w-2 scale-0 mr-1 ml-1',
+                        )}
+                      />
                       Пожалуйста подождите
                     </>
                   ) : (

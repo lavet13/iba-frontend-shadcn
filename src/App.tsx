@@ -2,16 +2,16 @@ import { Route, Routes, useLocation } from 'react-router-dom';
 import suspenseFallbackMap from './suspense-fallback-map';
 import { lazy, Suspense } from 'react';
 import { AnimatePresence } from 'framer-motion';
-import { Loader2 } from 'lucide-react';
 
 import Layout from '@/pages/layout/__layout';
+import { SonnerSpinner } from './components/sonner-spinner';
 
 const Loadable =
   (
     Component: React.ComponentType,
     fallback = (
       <div className='flex-1 flex items-center justify-center min-h-screen'>
-        <Loader2 className='h-8 w-8 animate-spin text-primary' />
+        <SonnerSpinner className="bg-foreground" scale="2" />
       </div>
     ),
   ) =>
