@@ -30,6 +30,8 @@ import { useNewWbOrderSubscriber } from '@/hooks/use-new-wb-order-subscriber';
 import { isGraphQLRequestError } from '@/utils/graphql/is-graphql-request-error';
 import CircularProgress from '@/components/circular-progress';
 import { cn } from '@/lib/utils';
+import { useBreakpoint } from '@/hooks/use-breakpoint';
+import AnimatedCircularProgressBar from '@/components/ui/animated-circular-progress-bar';
 
 const FormSchema = z
   .object({
@@ -378,7 +380,7 @@ const WbOrderPage: FC = () => {
                         value={uploadProgress.percent}
                         strokeWidth={3}
                         className={cn(
-                          'h-4',
+                          'transition-all duration-300 delay-100 h-4',
                           uploadProgress.percent < 100
                             ? 'w-4 mr-2 scale-1'
                             : 'w-2 scale-0 mr-1 ml-1',

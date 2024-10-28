@@ -15,20 +15,20 @@ const Header: FC = () => {
         <MobileNav />
         <div className='flex flex-1 items-center justify-between space-x-2 md:justify-end'>
           <div className='hidden lg:flex flex-1 lg:w-auto lg:flex-none'>
-            <Button className='px-2' variant='link' asChild>
-              <Link to='https://donntu.ru/' target='_blank' rel='noreferrer'>
-                ДонНТУ
-              </Link>
-            </Button>
-            <Button className='px-2' variant='link' asChild>
-              <Link
-                to='https://masters.donntu.ru/'
-                target='_blank'
-                rel='noreferrer'
-              >
-                Портал магистров
-              </Link>
-            </Button>
+            {/* <Button className='px-2' variant='link' asChild> */}
+            {/*   <Link to='https://donntu.ru/' target='_blank' rel='noreferrer'> */}
+            {/*     ДонНТУ */}
+            {/*   </Link> */}
+            {/* </Button> */}
+            {/* <Button className='px-2' variant='link' asChild> */}
+            {/*   <Link */}
+            {/*     to='https://masters.donntu.ru/' */}
+            {/*     target='_blank' */}
+            {/*     rel='noreferrer' */}
+            {/*   > */}
+            {/*     Портал магистров */}
+            {/*   </Link> */}
+            {/* </Button> */}
           </div>
           <nav className='w-full lg:w-auto flex justify-end items-center'>
             <Link
@@ -38,10 +38,22 @@ const Header: FC = () => {
               )}
               target='_blank'
               rel='noreferrer'
-              to='https://vk.com/beforeiclosemyeyesforever'
+              to='https://vk.com/id56419815'
             >
-              <Icons.vkontakte className='w-5 h-5 fill-foreground transition-colors' />
+              <Icons.vkontakte />
               <span className='sr-only'>VKontakte</span>
+            </Link>
+            <Link
+              className={cn(
+                buttonVariants({ variant: 'ghost', size: 'icon' }),
+                'w-8 h-8',
+              )}
+              target='_blank'
+              rel='noreferrer'
+              to='https://t.me/JaBBaRoV_JR'
+            >
+              <Icons.telegram />
+              <span className='sr-only'>Telegram</span>
             </Link>
             <ModeToggle />
           </nav>

@@ -70,6 +70,9 @@ const CircularProgress: React.FC<CircularProgressProps> = ({
               strokeDasharray: circumference,
             }}
             animate={{ strokeDashoffset: offset }}
+            transition={{
+              ease: 'easeOut',
+            }}
           />
         </svg>
       )}

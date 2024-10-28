@@ -10,6 +10,7 @@ import { cn, formatBytes } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
+import { useBreakpoint, type BreakpointValues } from '@/hooks/use-breakpoint';
 
 interface FileUploaderProps extends React.HTMLAttributes<HTMLDivElement> {
   /**
@@ -186,6 +187,15 @@ export function FileUploader(props: FileUploaderProps) {
   }, []);
 
   const isDisabled = disabled || (files?.length ?? 0) >= maxFileCount;
+  const fileNameLength = useBreakpoint({
+    base: 20,
+    sm: 25,
+    md: 30,
+    lg: 40,
+    xl: 50,
+    '2xl': 60,
+  });
+
 
   return (
     <div className='relative flex flex-col gap-6 overflow-hidden'>
@@ -212,7 +222,7 @@ export function FileUploader(props: FileUploaderProps) {
               ref={innerRef}
             >
               <input {...getInputProps()} />
-              <div className='pointer-events-none absolute flex flex-col items-center justify-center gap-4 sm:px-5 inset-0 z-10'>
+              <div className='select-none pointer-events-none absolute flex flex-col items-center justify-center gap-4 px-2 sm:px-5 inset-0 z-10'>
                 {isDragActive ? (
                   <>
                     <div className='rounded-full border border-dashed p-3'>
@@ -262,6 +272,7 @@ export function FileUploader(props: FileUploaderProps) {
                 file={file}
                 onRemove={() => onRemove(index)}
                 progress={progresses?.[file.name]}
+                fileNameLength={fileNameLength}
               />
             ))}
           </div>
@@ -275,18 +286,21 @@ interface FileCardProps {
   file: File;
   onRemove: () => void;
   progress?: number;
+  fileNameLength: number;
 }
 
-function FileCard({ file, onRemove, progress }: FileCardProps) {
+function FileCard({ file, onRemove, progress, fileNameLength }: FileCardProps) {
   return (
     <div className='relative flex items-center gap-2.5'>
       <div className='flex flex-1 gap-2.5 min-w-0'>
         {isFileWithPreview(file) ? <FilePreview file={file} /> : null}
         <div className='flex w-full flex-col gap-2 min-w-0'>
           <div className='flex flex-col gap-px'>
-            <p className='line-clamp-1 text-sm font-medium text-foreground/80 truncate'>
-              {file.name}
-            </p>
+            <FileNameFormatter
+              fileName={file.name}
+              maxLength={fileNameLength}
+              truncatePosition='middle'
+            />
             <p className='text-xs text-muted-foreground'>
               {formatBytes(file.size)}
             </p>
@@ -333,6 +347,106 @@ function FilePreview({ file }: FilePreviewProps) {
       className='size-10 text-muted-foreground'
       aria-hidden='true'
     />
+  );
+}
+
+interface FileNameFormatterProps {
+  /**
+   * The complete filename including extension
+   */
+  fileName: string;
+  /**
+   * Maximum length of the displayed filename
+   * @default 25
+   */
+  maxLength: number;
+  /**
+   * Custom truncation characters
+   * @default "..."
+   */
+  truncationChars?: string;
+  /**
+   * Where to truncate the filename
+   * @default "end"
+   */
+  truncatePosition?: 'start' | 'middle' | 'end';
+  /**
+   * Custom className for the container
+   */
+  className?: string;
+}
+
+interface FormattedFileName {
+  displayName: string;
+  originalName: string;
+  isLong: boolean;
+}
+
+function FileNameFormatter({
+  fileName,
+  maxLength,
+  truncationChars = '...',
+  truncatePosition = 'end',
+  className = '',
+}: FileNameFormatterProps) {
+  const formatFileName = (fullName: string): FormattedFileName => {
+    if (!fullName) {
+      return { displayName: '', originalName: '', isLong: false };
+    }
+
+    const lastDotIndex = fullName.lastIndexOf('.');
+    if (lastDotIndex === -1) {
+      return { displayName: fullName, originalName: fullName, isLong: false };
+    }
+
+    const name = fullName.slice(0, lastDotIndex);
+    const extension = fullName.slice(lastDotIndex);
+    const isLong = name.length + extension.length > maxLength;
+
+    if (!isLong) {
+      return { displayName: fullName, originalName: fullName, isLong: false };
+    }
+
+    const truncatedLength =
+      maxLength - extension.length - truncationChars.length;
+
+    let truncatedName: string;
+    switch (truncatePosition) {
+      case 'start':
+        truncatedName =
+          truncationChars + name.slice(-truncatedLength) + extension;
+        break;
+      case 'middle':
+        const halfLength = Math.floor(truncatedLength / 2);
+        truncatedName =
+          name.slice(0, halfLength) +
+          truncationChars +
+          name.slice(-(truncatedLength - halfLength)) +
+          extension;
+        break;
+      default: // 'end'
+        truncatedName =
+          name.slice(0, truncatedLength) + truncationChars + extension;
+    }
+
+    return {
+      displayName: truncatedName,
+      originalName: fullName,
+      isLong: true,
+    };
+  };
+
+  const formattedFile = formatFileName(fileName);
+
+  return (
+    <div
+      className={`flex items-center min-w-0 max-w-full ${className}`}
+      title={formattedFile.isLong ? formattedFile.originalName : undefined}
+    >
+      <span className='truncate text-sm font-medium text-foreground/80'>
+        {formattedFile.displayName}
+      </span>
+    </div>
   );
 }
 

@@ -1,5 +1,5 @@
-import { FC, PropsWithChildren, ReactNode } from 'react';
-import { Button } from '@/components/ui/button';
+import { FC, ReactNode, useCallback } from 'react';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { Icons } from '@/components/icons';
 import {
@@ -14,18 +14,23 @@ type NavLinkProps = Omit<RouterLinkProps, 'className'> & {
 };
 
 export const FooterLink: FC<NavLinkProps> = ({ to, children, className, ...props }) => {
+  const handleClick = useCallback(() => {
+    window.scrollTo({ top: 0 });
+  }, []);
+
   return (
     <RouterLink
       to={to}
       className={({ isActive }) =>
         cn(
-          'transition-colors font-semibold whitespace-nowrap font-medium hover:underline underline-offset-4',
+          'inline-flex w-fit transition-colors font-semibold whitespace-nowrap font-medium hover:underline underline-offset-4',
           isActive
             ? 'text-foreground hover:text-foreground/90 underline'
             : 'hover:text-foreground/80 text-foreground/60',
           className
         )
       }
+      onClick={handleClick}
       {...props}
     >
       {children}
@@ -42,48 +47,39 @@ const Footer: FC = () => {
             Ссылки
           </h4>
           <nav className="flex flex-col space-y-2 p-2">
-            <FooterLink to='/resume'>Резюме</FooterLink>
-            <FooterLink to='/biography'>Биография</FooterLink>
-            <FooterLink to='/essay'>Реферат</FooterLink>
-            <FooterLink to='/lib'>Библиотека</FooterLink>
-            <FooterLink to='/source'>Ссылки</FooterLink>
-            <FooterLink to='/statistic-search'>Отчет о поиске</FooterLink>
-            <FooterLink to='/self'>Индивидуальный раздел</FooterLink>
+            <FooterLink to='/wb-order'>Wildberries</FooterLink>
           </nav>
-        </div>
-        <div className="flex flex-col">
-          <h4 className="p-2 scroll-m-20 text-xl font-semibold tracking-tight">
-            Другие ссылки
-          </h4>
-          <Button className='w-fit justify-start px-2' variant='link' asChild>
-            <Link to='https://donntu.ru/' target='_blank' rel='noreferrer'>
-              ДонНТУ
-            </Link>
-          </Button>
-          <Button className='w-fit justify-start px-2' variant='link' asChild>
-            <Link
-              to='https://masters.donntu.ru/'
-              target='_blank'
-              rel='noreferrer'
-            >
-              Портал магистров
-            </Link>
-          </Button>
         </div>
         <div className="flex flex-col">
           <h4 className="p-2 scroll-m-20 text-xl font-semibold tracking-tight">
             Связаться
           </h4>
-          <Button className='w-fit justify-start ml-2 px-2 py-0 space-x-1 h-9' asChild>
+          <div className="flex items-center pl-1">
             <Link
-              to='https://vk.com/beforeiclosemyeyesforever'
+              className={cn(
+                buttonVariants({ variant: 'ghost', size: 'icon' }),
+                'size-10',
+              )}
               target='_blank'
               rel='noreferrer'
+              to='https://vk.com/id56419815'
             >
-              <Icons.vkontakte className='w-6 h-6 fill-background transition-colors' />
-              <span>Вконтакте</span>
+              <Icons.vkontakte className='size-7 fill-foreground transition-colors' />
+              <span className='sr-only'>VKontakte</span>
             </Link>
-          </Button>
+            <Link
+              className={cn(
+                buttonVariants({ variant: 'ghost', size: 'icon' }),
+                'size-10',
+              )}
+              target='_blank'
+              rel='noreferrer'
+              to='https://t.me/JaBBaRoV_JR'
+            >
+              <Icons.telegram className="size-6 fill-foreground transition-colors" />
+              <span className='sr-only'>Telegram</span>
+            </Link>
+          </div>
         </div>
       </div>
     </footer>

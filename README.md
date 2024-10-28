@@ -51,3 +51,4 @@ export default tseslint.config({
 
 # implement
  - chatting through graphql-ws
+ - add useAtom(jotai) to the Theme

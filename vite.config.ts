@@ -55,6 +55,7 @@ export default defineConfig(({ mode }) => {
     resolve: {
       alias: {
         '@': path.resolve(__dirname, './src'),
+        'tailwind-config': path.resolve(__dirname, './tailwind.config.js'),
       },
     },
     server: {
@@ -80,7 +81,13 @@ export default defineConfig(({ mode }) => {
         },
       },
     },
+    optimizeDeps: {
+      include: ['tailwind-config'],
+    },
     build: {
+      commonjsOptions: {
+        include: ['tailwind-config.js', 'node_modules/**'],
+      },
       minify: true,
       cssCodeSplit: true,
       rollupOptions: {

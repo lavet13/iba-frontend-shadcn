@@ -5,13 +5,13 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { Link, NavLink, NavLinkProps } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { FC, ReactNode, useState } from 'react';
+import { FC, ReactNode, useCallback, useState } from 'react';
 import { Icons } from '@/components/icons';
 
-type SheetLinkProps =  Omit<NavLinkProps, 'className'> & {
+type SheetLinkProps = Omit<NavLinkProps, 'className'> & {
   children: ReactNode;
   className?: string;
   onOpenChange: (open: boolean) => void;
@@ -24,6 +24,11 @@ const SheetLink: FC<SheetLinkProps> = ({
   onOpenChange,
   ...props
 }) => {
+  const handleClick = useCallback(() => {
+    onOpenChange(false);
+    window.scrollTo({ top: 0 });
+  }, []);
+
   return (
     <NavLink
       to={to}
@@ -36,9 +41,7 @@ const SheetLink: FC<SheetLinkProps> = ({
           className,
         )
       }
-      onClick={() => {
-        onOpenChange(false);
-      }}
+      onClick={handleClick}
       {...props}
     >
       {children}
@@ -63,33 +66,42 @@ const MobileNav = () => {
       </SheetTrigger>
       <SheetContent className='pr-0' side='left'>
         <SheetClose asChild>
-          <Link to='/' className={cn('flex items-center space-x-2')}>
-            <Icons.logo className="h-4 w-4" />
+          <Link
+            onClick={() => window.scrollTo({ top: 0 })}
+            to='/'
+            className={cn('flex items-center space-x-2')}
+          >
+            <Icons.logo className='h-4 w-4' />
             <span className='font-bold text-sm'>Джаббаров</span>
           </Link>
         </SheetClose>
         <ScrollArea className='my-4 h-[calc(100vh-8rem)] pb-10'>
-          <div className="flex flex-col h-full">
+          <div className='flex flex-col h-full'>
             <nav className='flex flex-col space-y-3 border-l'>
-              <SheetLink onOpenChange={setOpen} to='/wb-order'>Wildberries</SheetLink>
+              <SheetLink onOpenChange={setOpen} to='/wb-order'>
+                Wildberries
+              </SheetLink>
             </nav>
             <div className='flex flex-col items-start grow justify-end space-y-1 pt-6 pl-6'>
-              <Button
-                className='w-full justify-start pl-0'
-                variant='link'
-                asChild
-              >
-                <Link to='https://donntu.ru/' target='_blank'>
-                  ДонНТУ
+              <Button variant="link" className='w-fit px-2 py-0 space-x-1 h-9' asChild>
+                <Link
+                  to='https://vk.com/id56419815'
+                  target='_blank'
+                  rel='noreferrer'
+                >
+                  <Icons.vkontakte className='size-6 fill-foreground transition-colors' />
+                  <span>Вконтакте</span>
                 </Link>
               </Button>
-              <Button
-                className='w-full justify-start pl-0'
-                variant='link'
-                asChild
-              >
-                <Link to='https://masters.donntu.ru/' target='_blank'>
-                  Портал магистров
+
+              <Button variant="link" className='w-fit px-2 py-0 space-x-1 h-9' asChild>
+                <Link
+                  to='https://t.me/JaBBaRoV_JR'
+                  target='_blank'
+                  rel='noreferrer'
+                >
+                  <Icons.telegram className='size-5 fill-foreground transition-colors' />
+                  Telegram
                 </Link>
               </Button>
             </div>
@@ -99,6 +111,5 @@ const MobileNav = () => {
     </Sheet>
   );
 };
-
 
 export default MobileNav;

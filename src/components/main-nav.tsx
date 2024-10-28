@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils';
-import { FC, ReactNode } from 'react';
+import { FC, ReactNode, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import {
   NavLink as RouterLink,
@@ -13,6 +13,10 @@ type NavLinkProps = Omit<RouterLinkProps, 'className'> & {
 };
 
 export const NavLink: FC<NavLinkProps> = ({ to, children, className, ...props }) => {
+  const handleClick = useCallback(() => {
+    window.scrollTo({ top: 0 })
+  }, []);
+
   return (
     <RouterLink
       to={to}
@@ -25,6 +29,7 @@ export const NavLink: FC<NavLinkProps> = ({ to, children, className, ...props })
           className
         )
       }
+      onClick={handleClick}
       {...props}
     >
       {children}
@@ -38,6 +43,7 @@ const MainNav: FC = () => {
       <Link
         to='/'
         className={cn('mr-2 flex items-center space-x-2 lg:mr-3 xl:mr-6')}
+        onClick={() => window.scrollTo({ top: 0 })}
       >
         <Icons.logo className="h-6 w-6" />
         <span className='hidden font-bold xl:inline-block'>Джаббаров</span>
