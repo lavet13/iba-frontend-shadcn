@@ -1,9 +1,9 @@
 import { graphql } from '@/gql';
 import { WbOrderByIdQuery } from '@/gql/graphql';
 import { client } from '@/graphql/graphql-request';
-import { InitialDataOptions } from '@/utils/graphql/initial-data-options';
+import { InitialDataOptions } from '@/types/initial-data-options';
 import { useQuery } from '@tanstack/react-query';
-import { isGraphQLRequestError } from '@/utils/graphql/is-graphql-request-error';
+import { isGraphQLRequestError } from '@/types/is-graphql-request-error';
 import { useNavigate } from 'react-router-dom';
 
 export const useWbOrderById = (

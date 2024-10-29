@@ -14,7 +14,7 @@ import { graphql } from '@/gql';
 import { client } from '@/graphql/graphql-request';
 import { client as queryClient } from '@/react-query';
 import { useNavigate } from 'react-router-dom';
-import { isGraphQLRequestError } from '@/utils/graphql/is-graphql-request-error';
+import { isGraphQLRequestError } from '@/types/is-graphql-request-error';
 
 export const useUpdateWbOrder = (
   options?: UseMutationOptions<

@@ -1,25 +1,11 @@
-import resolveConfig from 'tailwindcss/resolveConfig';
-// @ts-ignore
-import tailwindConfig from 'tailwind-config';
-
-const fullConfig = resolveConfig(tailwindConfig);
-
-// Extract the screen breakpoints from Tailwind config
-export const screens = fullConfig.theme?.screens as Record<string, string>;
-
-// Convert breakpoint strings to numbers (e.g., "640px" -> 640)
-export const breakpoints = Object.entries(screens).reduce(
-  (acc, [key, value]) => ({
-    ...acc,
-    [key]: parseInt(value.replace('px', ''), 10),
-  }),
-  {} as Record<string, number>,
-);
-
 // hooks/use-breakpoint.ts
 import { useEffect, useState } from 'react';
+import { breakpointsAtom } from '@/lib/atoms/tailwind';
+import { useAtom, useAtomValue } from 'jotai';
 
-type BreakpointKey = keyof typeof breakpoints;
+type BreakpointKey = keyof ReturnType<
+  typeof useAtomValue<typeof breakpointsAtom>
+>;
 
 type BreakpointValues<T> = {
   base: T;
@@ -29,6 +15,7 @@ type BreakpointValues<T> = {
 
 function useBreakpoint<T>(values: BreakpointValues<T>): T {
   const [currentValue, setCurrentValue] = useState<T>(values.base);
+  const [breakpoints] = useAtom(breakpointsAtom);
 
   useEffect(() => {
     const updateValue = () => {
@@ -36,7 +23,6 @@ function useBreakpoint<T>(values: BreakpointValues<T>): T {
 
       // Check each breakpoint from largest to smallest
       const breakpointEntries = Object.entries(breakpoints).reverse();
-      console.log({ breakpoints, breakpointEntries });
 
       for (const [breakpoint, minWidth] of breakpointEntries) {
         if (

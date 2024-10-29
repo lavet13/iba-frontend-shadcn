@@ -27,11 +27,9 @@ import {
   InputOTPSlot,
 } from '@/components/ui/input-otp';
 import { useNewWbOrderSubscriber } from '@/hooks/use-new-wb-order-subscriber';
-import { isGraphQLRequestError } from '@/utils/graphql/is-graphql-request-error';
+import { isGraphQLRequestError } from '@/types/is-graphql-request-error';
 import CircularProgress from '@/components/circular-progress';
 import { cn } from '@/lib/utils';
-import { useBreakpoint } from '@/hooks/use-breakpoint';
-import AnimatedCircularProgressBar from '@/components/ui/animated-circular-progress-bar';
 
 const FormSchema = z
   .object({

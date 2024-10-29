@@ -188,12 +188,12 @@ export function FileUploader(props: FileUploaderProps) {
 
   const isDisabled = disabled || (files?.length ?? 0) >= maxFileCount;
   const fileNameLength = useBreakpoint({
-    base: 20,
-    sm: 25,
-    md: 30,
-    lg: 40,
-    xl: 50,
-    '2xl': 60,
+    base: 17,
+    sm: 45,
+    md: 50,
+    lg: 60,
+    xl: 70,
+    '2xl': 70,
   });
 
 

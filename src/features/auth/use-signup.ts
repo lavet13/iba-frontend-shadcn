@@ -1,5 +1,5 @@
 import { UseMutationOptions, useMutation } from '@tanstack/react-query';
-import { RegisterMutation, RegisterMutationVariables } from '../../gql/graphql';
+import { RegisterMutation, RegisterMutationVariables } from '@/gql/graphql';
 import { graphql } from '@/gql';
 import { client } from '@/graphql/graphql-request';
 

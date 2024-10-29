@@ -2,9 +2,9 @@ import { SearchTypeWbOrders, WbOrdersQuery } from '@/gql/graphql';
 import { graphql } from '@/gql';
 import { client } from '@/graphql/graphql-request';
 import { useInfiniteQuery } from '@tanstack/react-query';
-import { InitialDataInfiniteOptions } from '@/utils/graphql/initial-data-infinite-options';
+import { InitialDataInfiniteOptions } from '@/types/initial-data-infinite-options';
 import { useNavigate } from 'react-router-dom';
-import { isGraphQLRequestError } from '@/utils/graphql/is-graphql-request-error';
+import { isGraphQLRequestError } from '@/types/is-graphql-request-error';
 import { OrderStatus } from '@/gql/graphql';
 
 type TPageParam = {
