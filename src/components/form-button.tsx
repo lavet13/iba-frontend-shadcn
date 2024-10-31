@@ -5,7 +5,7 @@ import { buttonVariants } from '@/components/ui/button';
 import { VariantProps } from 'class-variance-authority';
 
 const customButtonStyles = cn(
-  'inline-flex items-center justify-center whitespace-nowrap rounded-md focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 shadow hover:bg-primary/90 h-9 px-4 py-2 group relative w-full gap-2 overflow-hidden font-semibold tracking-tighter transform-gpu ring-offset-current transition-all duration-100 ease-out hover:ring-2 hover:ring-primary hover:ring-offset-2',
+  'inline-flex items-center justify-center whitespace-nowrap rounded-md focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 shadow hover:bg-primary/90 h-9 px-4 py-2 group relative w-full gap-2 overflow-hidden font-semibold tracking-tighter transform-gpu transition-all ease-out hover:ring-2 hover:ring-primary hover:ring-offset-2',
 );
 
 interface FormButtonProps

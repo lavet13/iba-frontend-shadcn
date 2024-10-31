@@ -386,7 +386,9 @@ const WbOrderPage: FC = () => {
                             : 'w-2 scale-0 mr-1 ml-1',
                         )}
                       />
-                      Пожалуйста подождите
+                      {uploadProgress.percent < 100
+                        ? 'Пожалуйста подождите'
+                        : 'Подтверждение'}
                     </>
                   ) : (
                     'Зарегестрировать'
@@ -394,7 +396,7 @@ const WbOrderPage: FC = () => {
                 </FormButton>
               </div>
             </div>
-            <BorderBeam size={400} className="border rounded-xl" />
+            <BorderBeam size={400} className='border rounded-xl' />
           </div>
         </form>
       </Form>
