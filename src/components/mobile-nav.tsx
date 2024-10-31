@@ -82,7 +82,7 @@ const MobileNav = () => {
                 Wildberries
               </SheetLink>
             </nav>
-            <div className='flex flex-col items-start grow justify-end space-y-1 pt-6 pl-6'>
+            <div className='flex flex-col items-start grow justify-end space-y-1 pt-6 pl-0'>
               <Button variant="link" className='w-fit px-2 py-0 space-x-1 h-9' asChild>
                 <Link
                   to='https://vk.com/id56419815'

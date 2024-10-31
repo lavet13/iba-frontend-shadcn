@@ -43,7 +43,6 @@ const recursiveExtractFiles = (variableKey: string, variableValue: any, prefix: 
 };
 
 export const requestMiddlewareUploadFiles: RequestMiddleware = async (request) => {
-
   const files = Object.entries(request.variables || {}).flatMap(([variableKey, variableValue]) => {
     return recursiveExtractFiles(variableKey, variableValue, "variables");
   });
@@ -78,6 +77,7 @@ export const requestMiddlewareUploadFiles: RequestMiddleware = async (request) =
   const { "Content-Type": _, ...newHeaders } = request.headers as Record<string, string>;
 
   const progressCallback = request.variables?.progressCallback;
+  console.log({ progressCallback });
 
   return {
     ...request,

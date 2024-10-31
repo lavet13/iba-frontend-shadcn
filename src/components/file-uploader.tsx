@@ -191,9 +191,9 @@ export function FileUploader(props: FileUploaderProps) {
     base: 17,
     sm: 45,
     md: 50,
-    lg: 60,
-    xl: 70,
-    '2xl': 70,
+    lg: 50,
+    xl: 60,
+    '2xl': 60,
   });
 
 

@@ -82,75 +82,96 @@ class AuthenticatedGraphQLClient extends GraphQLClient {
   }
 }
 
+type AbortHandler = XMLHttpRequest["abort"]
+
+interface CustomFetchOptions extends RequestInit {
+  progressCallback?: (progress: string) => void;
+  onAbortPossible?: (abortHandler: AbortHandler) => void;
+}
+
+type OnloadOptions = {
+  status: number;
+  statusText: string;
+  headers: Headers;
+} & Record<string, any>;
+
+const parseHeaders = (rawHeaders: string): Headers => {
+  const headers = new Headers();
+  // Replace instances of \r\n and \n followed by at least one space or horizontal tab with a space
+  // https://tools.ietf.org/html/rfc7230#section-3.2
+  const preProcessedHeaders = rawHeaders.replace(/\r?\n[\t ]+/g, ' ');
+  preProcessedHeaders.split(/\r?\n/).forEach((line: string) => {
+    const parts = line.split(':');
+    const key = parts.shift()?.trim();
+    if (key) {
+      const value = parts.join(':').trim();
+      headers.append(key, value);
+    }
+  });
+  return headers;
+};
+
+const customFetch = async (url: URL | RequestInfo, opts: CustomFetchOptions = {}): Promise<Response> => {
+  if (opts.progressCallback) {
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open(opts.method || '', url as string, true);
+
+      Object.keys(opts.headers as Headers).forEach(key => {
+        const headerValue = opts.headers
+          ? (opts.headers[key as keyof HeadersInit] as string)
+          : '';
+        xhr.setRequestHeader(key, headerValue);
+      });
+
+      // Track upload progress
+      xhr.upload.onprogress = event => {
+        if (event.lengthComputable) {
+          const percentComplete = (event.loaded / event.total) * 100;
+
+          opts.progressCallback?.(percentComplete.toFixed());
+        }
+      };
+
+      // Handle response
+      xhr.onload = () => {
+        const opts: OnloadOptions = {
+          status: xhr.status,
+          statusText: xhr.statusText,
+          headers: parseHeaders(xhr.getAllResponseHeaders() || ''),
+        };
+        opts.url =
+          'responseURL' in xhr
+            ? xhr.responseURL
+            : opts.headers.get('X-Request-URL');
+        const body =
+          'response' in xhr ? xhr.response : (xhr as any).responseText;
+
+        resolve(new Response(body, opts));
+      };
+
+      // Handle errors
+      xhr.onerror = () => reject(new TypeError('Network request failed'));
+      xhr.ontimeout = () => reject(new TypeError('Network request timed out'));
+      xhr.onabort = () => reject(new TypeError('Network request aborted'));
+
+      // Send the request
+      xhr.send(
+        opts.body as XMLHttpRequestBodyInit | Document | null | undefined,
+      );
+    });
+  }
+
+  return fetch(url, opts);
+};
+
 export const client = new AuthenticatedGraphQLClient(
   import.meta.env.VITE_GRAPHQL_URI,
   {
     requestMiddleware: requestMiddlewareUploadFiles,
     mode: 'cors',
     credentials: 'include',
-    async fetch(url, opts = {}) {
-      return new Promise((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-        xhr.open(opts.method || 'GET', url as string, true);
-
-        // Set headers
-        if (opts.headers) {
-          Object.entries(opts.headers).forEach(([key, value]) => {
-            xhr.setRequestHeader(key, value);
-          });
-        }
-
-        // Track upload progress
-        xhr.upload.onprogress = event => {
-          if (event.lengthComputable) {
-            const percentComplete = (event.loaded / event.total) * 100;
-
-            if (opts.progressCallback) {
-              opts.progressCallback(percentComplete.toFixed());
-            }
-          }
-        };
-
-        // Handle response
-        xhr.onload = () => {
-          const headers = parseHeaders(xhr.getAllResponseHeaders());
-          const responseBody = xhr.responseText;
-
-          const response = new Response(responseBody, {
-            status: xhr.status,
-            statusText: xhr.statusText,
-            headers: headers,
-          });
-
-          resolve(response);
-        };
-
-        // Handle errors
-        xhr.onerror = () => reject(new TypeError('Network request failed'));
-        xhr.ontimeout = () =>
-          reject(new TypeError('Network request timed out'));
-        xhr.onabort = () => reject(new TypeError('Network request aborted'));
-
-        // Send the request
-        xhr.send((opts.body as XMLHttpRequestBodyInit) || null);
-      });
-    },
+    fetch: customFetch,
   },
 );
 
-// Utility function to parse headers from the XHR response
-function parseHeaders(headerStr: string) {
-  const headers = new Headers();
-  if (!headerStr) {
-    return headers;
-  }
-  const headerPairs = headerStr.split('\u000d\u000a');
-  for (const header of headerPairs) {
-    const [key, ...rest] = header.split(': ');
-    const value = rest.join(': ');
-    if (key) {
-      headers.append(key, value);
-    }
-  }
-  return headers;
-}

@@ -30,6 +30,8 @@ import { useNewWbOrderSubscriber } from '@/hooks/use-new-wb-order-subscriber';
 import { isGraphQLRequestError } from '@/types/is-graphql-request-error';
 import CircularProgress from '@/components/circular-progress';
 import { cn } from '@/lib/utils';
+import { BorderBeam } from '@/components/ui/border-beam';
+import { FormButton } from '@/components/form-button';
 
 const FormSchema = z
   .object({
@@ -41,7 +43,7 @@ const FormSchema = z
         return (
           parts.length === 3 && parts.every(part => namePattern.test(part))
         );
-      }, 'Необходимо заполнить Имя, Фамилию и Отчество'),
+      }, 'Необходимо заполнить Фамилию, Имя и Отчество!'),
     phone: z
       .string({ required_error: 'Телефон обязателен к заполнению!' })
       .refine(
@@ -223,7 +225,7 @@ const WbOrderPage: FC = () => {
           onSubmit={form.handleSubmit(onSubmit)}
           className='w-full sm:max-w-screen-sm space-y-6 mx-auto'
         >
-          <div className='border rounded-md p-6'>
+          <div className='relative overflow-hidden w-full h-full border rounded-xl p-6'>
             <div className='flex flex-col space-y-1.5 mb-6'>
               <h3 className='font-semibold tracking-tight text-xl'>
                 Wildberries
@@ -367,7 +369,7 @@ const WbOrderPage: FC = () => {
                 />
               </div>
               <div className='sm:grid sm:grid-cols-[repeat(auto-fill,_minmax(17rem,_1fr))] gap-1 gap-y-2'>
-                <Button
+                <FormButton
                   disabled={isSubmitting}
                   className={'w-full sm:w-auto col-start-1 col-end-2'}
                   type='submit'
@@ -389,9 +391,10 @@ const WbOrderPage: FC = () => {
                   ) : (
                     'Зарегестрировать'
                   )}
-                </Button>
+                </FormButton>
               </div>
             </div>
+            <BorderBeam size={400} className="border rounded-xl" />
           </div>
         </form>
       </Form>

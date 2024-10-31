@@ -25,7 +25,7 @@ export const FooterLink: FC<NavLinkProps> = ({ to, children, className, ...props
         cn(
           'inline-flex w-fit transition-colors font-semibold whitespace-nowrap font-medium hover:underline underline-offset-4',
           isActive
-            ? 'text-foreground hover:text-foreground/90 underline'
+            ? 'text-foreground hover:text-foreground/90'
             : 'hover:text-foreground/80 text-foreground/60',
           className
         )
