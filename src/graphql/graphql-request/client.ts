@@ -82,10 +82,10 @@ class AuthenticatedGraphQLClient extends GraphQLClient {
   }
 }
 
-type AbortHandler = XMLHttpRequest["abort"]
+export type AbortHandler = XMLHttpRequest['abort'];
 
 interface CustomFetchOptions extends RequestInit {
-  progressCallback?: (progress: string) => void;
+  progressCallback?: (percent: string) => void;
   onAbortPossible?: (abortHandler: AbortHandler) => void;
 }
 
@@ -111,7 +111,10 @@ const parseHeaders = (rawHeaders: string): Headers => {
   return headers;
 };
 
-const customFetch = async (url: URL | RequestInfo, opts: CustomFetchOptions = {}): Promise<Response> => {
+const customFetch = async (
+  url: URL | RequestInfo,
+  opts: CustomFetchOptions = {},
+): Promise<Response> => {
   if (opts.progressCallback) {
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
@@ -132,6 +135,10 @@ const customFetch = async (url: URL | RequestInfo, opts: CustomFetchOptions = {}
           opts.progressCallback?.(percentComplete.toFixed());
         }
       };
+
+      opts.onAbortPossible?.(() => {
+        xhr.abort();
+      });
 
       // Handle response
       xhr.onload = () => {
@@ -174,4 +181,3 @@ export const client = new AuthenticatedGraphQLClient(
     fetch: customFetch,
   },
 );
-

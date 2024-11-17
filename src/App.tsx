@@ -1,17 +1,22 @@
-import { Route, Routes, useLocation } from 'react-router-dom';
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import suspenseFallbackMap from './suspense-fallback-map';
 import { lazy, Suspense } from 'react';
-import { AnimatePresence } from 'framer-motion';
 
-import Layout from '@/pages/layout/__layout';
-import { SonnerSpinner } from './components/sonner-spinner';
+import { SonnerSpinner } from '@/components/sonner-spinner';
+
+type RouteComponent = (props: JSX.IntrinsicAttributes) => JSX.Element;
+type AppRoute = {
+  name: string;
+  path: string;
+  component: RouteComponent;
+};
 
 const Loadable =
   (
     Component: React.ComponentType,
     fallback = (
       <div className='flex-1 flex items-center justify-center min-h-screen'>
-        <SonnerSpinner className="bg-foreground" scale="2" />
+        <SonnerSpinner className='bg-foreground' scale='2' />
       </div>
     ),
   ) =>
@@ -21,11 +26,18 @@ const Loadable =
     </Suspense>
   );
 
-// So in the App.tsx we could import css file which is gonna be in multiple
-// entries. For example, we could import font.css
+const NotFound = Loadable(lazy(() => import('@/pages/layout/__not-found')));
+const AdminNotFound = Loadable(lazy(() => import('@/pages/admin/layout/__not-found')));
 
-const NotFound = Loadable( lazy(() => import('@/pages/layout/__not-found')));
+const AdminLayout = Loadable(lazy(() => import('@/pages/admin/layout/__layout')));
+const Layout = Loadable(lazy(() => import('@/pages/layout/__layout')));
 
+/*
+ *
+ * example
+ * ./pages/home.tsx: () => import("/src/pages/home.tsx")
+ * reference: https://vite.dev/guide/features#glob-import
+ */
 const PagePathsWithComponents: Record<string, any> = import.meta.glob(
   './pages/**/[!_]*.tsx',
 );
@@ -36,72 +48,80 @@ import.meta.env.DEV &&
     paths: Object.keys(PagePathsWithComponents),
   });
 
-const routes = Object.keys(PagePathsWithComponents).map(path => {
-  const dynamicMatch = path.match(
-    /\.\/pages\/(.*?)\/\[(.*?)\](?:\/(.*?)(?:\/(.*?))?)?\.tsx$/,
-  );
-  import.meta.env.DEV && console.log({ dynamicMatch });
-  if (dynamicMatch) {
-    const [, routePath, paramName, nestedPath = '', nestedParamName = ''] =
-      dynamicMatch;
+const processRoutes = (paths: Record<string, any>) => {
+  const adminRoutes: AppRoute[] = [];
+  const regularRoutes: AppRoute[] = [];
 
-    const nestedPathToUse = nestedPath === 'index' ? '' : nestedPath;
-    const nestedParamToUse = nestedParamName ? `:${nestedParamName}` : '';
+  Object.keys(paths).forEach(path => {
+    const dynamicMatch = path.match(
+      /\.\/pages\/(.*?)\/\[(.*?)\](?:\/(.*?)(?:\/(.*?))?)?\.tsx$/,
+    );
 
-    import.meta.env.DEV &&
-      console.log({
+    if (dynamicMatch) {
+      const [, routePath, paramName, nestedPath = '', nestedParamName = ''] =
+        dynamicMatch;
+      const nestedPathToUse = nestedPath === 'index' ? '' : nestedPath;
+      const nestedParamToUse = nestedParamName ? `:${nestedParamName}` : '';
+
+      const route: AppRoute = {
+        name: `${routePath}/${paramName}${nestedPathToUse ? `/${nestedPathToUse}${nestedParamName}` : ''}`,
         path: `${routePath}/:${paramName}${nestedPathToUse ? `/${nestedPathToUse}${nestedParamToUse}` : ''}`,
-      });
+        component: Loadable(lazy(paths[path])),
+      };
 
-    return {
-      name: `${routePath}/${paramName}${nestedPathToUse ? `/${nestedPathToUse}${nestedParamName}` : ''}`,
-      path: `${routePath}/:${paramName}${nestedPathToUse ? `/${nestedPathToUse}${nestedParamToUse}` : ''}`,
-      component: Loadable(lazy(PagePathsWithComponents[path])),
-    };
-  }
+      if (routePath.startsWith('admin/')) {
+        adminRoutes.push(route);
+      } else {
+        regularRoutes.push(route);
+      }
+      return;
+    }
 
-  const regularMatch = path.match(/\.\/pages\/(.*?)\/?(index)?\.tsx$/);
-  if (regularMatch) {
-    const [, name] = regularMatch;
-    const lowerName = name.toLowerCase();
-    // const fallback = suspenseFallbackMap.get(lowerName) || undefined;
-    //
-    return {
-      name,
-      path: lowerName === 'home' ? '/' : `/${lowerName}`,
-      component: Loadable(lazy(PagePathsWithComponents[path]), undefined),
-    };
-  }
+    const regularMatch = path.match(/\.\/pages\/(.*?)\/?(index)?\.tsx$/);
+    if (regularMatch) {
+      const [, name] = regularMatch;
+      const lowerName = name.toLowerCase();
 
-  return null; // Ignore invalid paths
-});
+      const route: AppRoute = {
+        name,
+        path: lowerName === 'home' ? '/' : `/${lowerName}`,
+        component: Loadable(lazy(paths[path]), undefined),
+      };
 
-import.meta.env.DEV && console.log({ routes });
+      console.log({ route });
 
-const filteredRoutes = routes.filter(
-  (
-    route,
-  ): route is {
-    name: string;
-    path: string;
-    component: (props: JSX.IntrinsicAttributes) => JSX.Element;
-  } => route !== null,
-);
+      if (name.startsWith('admin')) {
+        adminRoutes.push(route);
+      } else {
+        regularRoutes.push(route);
+      }
+    }
+  });
+
+  return { adminRoutes, regularRoutes };
+};
+
+const { adminRoutes, regularRoutes } = processRoutes(PagePathsWithComponents);
+
+import.meta.env.DEV && console.log({ adminRoutes, regularRoutes });
 
 const App = () => {
-  const location = useLocation();
-
   return (
-    <AnimatePresence mode='wait'>
-      <Routes location={location} key={location.pathname}>
-        <Route path='/' element={<Layout />}>
-          {filteredRoutes.map(({ path, component: ReactComponent }) => (
-            <Route key={path} path={path} element={<ReactComponent />} />
-          ))}
-        </Route>
-        <Route path='*' element={<NotFound />} />
-      </Routes>
-    </AnimatePresence>
+    <Routes>
+      <Route path='/admin' element={<AdminLayout />}>
+        <Route index element={<Navigate to={'home'} />}  />
+        {adminRoutes.map(({ path, component: ReactComponent }) => (
+          <Route key={path} path={path} element={<ReactComponent />} />
+        ))}
+        <Route path='*' element={<AdminNotFound />} />
+      </Route>
+      <Route path='/' element={<Layout />}>
+        {regularRoutes.map(({ path, component: ReactComponent }) => (
+          <Route key={path} path={path} element={<ReactComponent />} />
+        ))}
+      </Route>
+      <Route path='*' element={<NotFound />} />
+    </Routes>
   );
 };
 

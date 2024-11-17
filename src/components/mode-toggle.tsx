@@ -11,6 +11,7 @@ import { cn } from '@/lib/utils';
 
 export function ModeToggle() {
   const { theme, setTheme } = useTheme();
+  const activeStyles = 'text-primary focus:text-primary focus:bg-primary/10';
 
   return (
     <DropdownMenu>
@@ -22,32 +23,14 @@ export function ModeToggle() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align='end'>
-        <DropdownMenuItem className="transition-none" onClick={() => setTheme('light')}>
+        <DropdownMenuItem className={cn("transition-none", theme === 'light' ? activeStyles : '')} onClick={() => setTheme('light')}>
           <SunIcon className='mr-2 size-4' /> Светлая
-          <CheckIcon
-            className={cn(
-              'ml-auto h-4 w-4',
-              theme === 'light' ? 'visible' : 'invisible',
-            )}
-          />
         </DropdownMenuItem>
-        <DropdownMenuItem className="transition-none" onClick={() => setTheme('dark')}>
+        <DropdownMenuItem className={cn("transition-none", theme === 'dark' ? activeStyles : '')} onClick={() => setTheme('dark')}>
           <MoonIcon className='mr-2 size-4' /> Темная
-          <CheckIcon
-            className={cn(
-              'ml-auto h-4 w-4',
-              theme === 'dark' ? 'visible' : 'invisible',
-            )}
-          />
         </DropdownMenuItem>
-        <DropdownMenuItem className="transition-none" onClick={() => setTheme('system')}>
+        <DropdownMenuItem className={cn("transition-none", theme === 'system' ? activeStyles : '')} onClick={() => setTheme('system')}>
           <LaptopIcon className="mr-2 size-4" /> Системная
-          <CheckIcon
-            className={cn(
-              'ml-2 h-4 w-4',
-              theme === 'system' ? 'visible' : 'invisible',
-            )}
-          />
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

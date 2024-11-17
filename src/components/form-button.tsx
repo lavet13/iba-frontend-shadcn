@@ -2,10 +2,28 @@ import * as React from 'react';
 import { Slot, Slottable } from '@radix-ui/react-slot';
 import { cn } from '@/lib/utils'; // Ensure this utility is available for class name composition
 import { buttonVariants } from '@/components/ui/button';
-import { VariantProps } from 'class-variance-authority';
+import { cva, VariantProps } from 'class-variance-authority';
 
-const customButtonStyles = cn(
-  'inline-flex items-center justify-center whitespace-nowrap rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 shadow hover:bg-primary/90 h-9 px-4 py-2 group relative w-full gap-2 overflow-hidden font-semibold tracking-tighter transform-gpu transition-all ease-out hover:ring-2 hover:ring-primary hover:ring-offset-2',
+const formButtonVariants = cva(
+  "group relative w-full overflow-hidden font-semibold tracking-tighter transform-gpu transition-all ease-out hover:ring-2 hover:ring-offset-2",
+  {
+    variants: {
+      variant: {
+        default: "hover:ring-primary",
+        destructive:
+          "hover:ring-destructive",
+        outline:
+          "hover:ring-accent",
+        secondary:
+          "hover:ring-secondary",
+        ghost: "hover:ring-accent",
+        link: "hover:ring-primary",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+    },
+  }
 );
 
 interface FormButtonProps
@@ -21,8 +39,8 @@ const FormButton = React.forwardRef<HTMLButtonElement, FormButtonProps>(
     return (
       <Comp
         className={cn(
-          buttonVariants({ variant: 'default', size: 'default' }),
-          customButtonStyles,
+          buttonVariants({ variant, size }),
+          formButtonVariants({ variant }),
           className,
         )}
         ref={ref}

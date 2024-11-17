@@ -1,6 +1,6 @@
 import { FC, useEffect, useRef } from 'react';
-import Header from './__header';
-import Footer from './__footer';
+import Header from '@/pages/layout/__header';
+import Footer from '@/pages/layout/__footer';
 import { Outlet, useLocation } from 'react-router-dom';
 import { QueryErrorResetBoundary } from '@tanstack/react-query';
 import { ErrorBoundary } from 'react-error-boundary';
@@ -13,7 +13,7 @@ const Layout: FC = () => {
   return (
     <div className='relative flex flex-col'>
       <Header />
-      <main className='flex flex-col grow shrink-0 border-b min-h-[calc(100vh-3.5rem)]'>
+      <main className='flex flex-col grow shrink-0 border-b min-h-[calc(100svh-3.5rem)]'>
         <QueryErrorResetBoundary>
           {({ reset }) => (
             <ErrorBoundary

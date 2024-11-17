@@ -93,21 +93,19 @@ const CountrySelect = ({
     [onChange],
   );
 
-  console.log({ options, value });
-
   return (
     <Popover>
       <PopoverTrigger asChild>
         <Button
           type='button'
           variant={'outline'}
-          className={cn('flex gap-1 rounded-e-none rounded-s-lg px-3 ring-offset-background transform-gpu transition-all ease-out focus-visible:z-10')}
+          className={'flex gap-1 rounded-e-none rounded-s-lg px-3 ring-offset-background transform-gpu transition-all ease-out focus-visible:z-10'}
           disabled={disabled}
         >
           <FlagComponent country={value} countryName={value} />
           <ChevronsUpDown
             className={cn(
-              '-mr-2 h-4 w-4 opacity-50',
+              '-mr-2 opacity-50',
               disabled ? 'hidden' : 'opacity-100',
             )}
           />
@@ -155,11 +153,11 @@ const CountrySelect = ({
   );
 };
 
-const FlagComponent = ({ country, countryName }: RPNInput.FlagProps) => {
+const FlagComponent = ({ className, country, countryName }: RPNInput.FlagProps & {className?: string; }) => {
   const Flag = flags[country];
 
   return (
-    <span className='bg-foreground/20 flex h-4 w-6 overflow-hidden rounded-sm'>
+    <span className={cn('bg-foreground/20 flex items-center justify-center overflow-hidden rounded-sm h-4 w-6 [&_svg]:h-4 [&_svg]:w-6', className)}>
       {Flag && <Flag title={countryName} />}
     </span>
   );

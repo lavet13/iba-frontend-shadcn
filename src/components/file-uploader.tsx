@@ -198,7 +198,7 @@ export function FileUploader(props: FileUploaderProps) {
 
 
   return (
-    <div className='relative flex flex-col gap-6 overflow-hidden'>
+    <div className='relative flex flex-col gap-6'>
       <Dropzone
         onDrop={onDrop}
         accept={accept}
@@ -213,7 +213,7 @@ export function FileUploader(props: FileUploaderProps) {
               {...getRootProps()}
               className={cn(
                 'group relative grid min-h-52 w-full cursor-pointer place-items-center rounded-lg border-2 border-dashed border-muted-foreground/25 px-5 py-4 sm:py-2.5 text-center transition hover:bg-muted/25',
-                'ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus:border-muted-foreground/50',
+                'ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
                 isDragActive && 'border-muted-foreground/50',
                 isDisabled && 'pointer-events-none opacity-60',
                 className,
@@ -244,11 +244,11 @@ export function FileUploader(props: FileUploaderProps) {
                       />
                     </div>
                     <div className='flex flex-col gap-1 sm:gap-px'>
-                      <p className='font-medium text-muted-foreground'>
+                      <p className='text-xs sm:text-sm font-medium text-muted-foreground'>
                         Перетащите файл{maxFileCount > 1 ? 'ы' : ''} или нажмите
                         здесь для выбора {maxFileCount > 1 ? 'файлов' : 'файла'}
                       </p>
-                      <p className='text-sm text-muted-foreground/70'>
+                      <p className='text-xs sm:text-sm text-muted-foreground/70'>
                         Вы можете загрузить{' '}
                         {maxFileCount > 1
                           ? ` ${maxFileCount === Infinity ? 'неограниченное количество' : maxFileCount}

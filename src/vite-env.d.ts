@@ -1,5 +1,4 @@
 /// <reference types="vite/client" />
-import { Config } from 'tailwindcss/types/config';
 
 interface ImportMetaEnv {
   readonly VITE_GRAPHQL_URI: string;

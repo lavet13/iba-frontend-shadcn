@@ -48,7 +48,7 @@ export const useGetMe = (options?: InitialDataOptions<MeQuery>) => {
         throw error;
       }
     },
-    refetchOnMount: false,
+    refetchOnMount: true,
     refetchOnWindowFocus: true,
     refetchOnReconnect: true,
     retry: false,

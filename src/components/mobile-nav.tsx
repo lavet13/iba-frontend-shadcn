@@ -89,7 +89,7 @@ const MobileNav = () => {
                   target='_blank'
                   rel='noreferrer'
                 >
-                  <Icons.vkontakte className='size-6 fill-foreground transition-colors' />
+                  <Icons.vkontakte className='basis-5 fill-foreground transition-colors' />
                   <span>Вконтакте</span>
                 </Link>
               </Button>
@@ -100,8 +100,8 @@ const MobileNav = () => {
                   target='_blank'
                   rel='noreferrer'
                 >
-                  <Icons.telegram className='size-5 fill-foreground transition-colors' />
-                  Telegram
+                  <Icons.telegram className='basis-5 fill-foreground transition-colors' />
+                  <span>Telegram</span>
                 </Link>
               </Button>
             </div>

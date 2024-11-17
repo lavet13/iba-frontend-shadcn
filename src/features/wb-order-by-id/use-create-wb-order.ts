@@ -5,7 +5,7 @@ import {
 } from '@/gql/graphql';
 import { graphql } from '@/gql';
 import { client } from '@/graphql/graphql-request';
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 
 interface UploadProgress {
   percent: number;
@@ -24,6 +24,14 @@ export const useCreateWbOrder = (
     isComplete: false,
   });
 
+  const abortRef = useRef<(() => void) | null>(null);
+  const handleCancel = () => {
+    if(abortRef.current) {
+      abortRef.current();
+      abortRef.current = null;
+    }
+  };
+
   const handleProgress = useCallback((percent: number) => {
     setUploadProgress({
       percent: Number(percent),
@@ -34,9 +42,9 @@ export const useCreateWbOrder = (
   const resetProgress = useCallback(() => {
     setUploadProgress({
       percent: 0,
-      isComplete: false
+      isComplete: false,
     });
-  }, [])
+  }, []);
 
   const createWbOrder = graphql(`
     mutation CreateWbOrder($input: WbOrderInput!) {
@@ -59,11 +67,21 @@ export const useCreateWbOrder = (
         return client.request(createWbOrder, {
           ...variables,
           progressCallback: handleProgress,
+          onAbortPossible: (abort: () => void) => {
+            abortRef.current = abort;
+          },
         });
+      },
+      onMutate() {
+        resetProgress();
+      },
+      onSettled() {
+        abortRef.current = null;
       },
       ...options,
     }),
     uploadProgress,
-    resetProgress,
+    handleCancel,
+    isAborting: !!abortRef.current,
   };
 };

@@ -16,6 +16,7 @@ export const client = new QueryClient({
         toast.error(error.response.errors[0].message, {
           duration: 4000,
           richColors: true,
+          position: 'bottom-center',
         });
       } else if (error instanceof Error) {
         toast.error(error.message, {

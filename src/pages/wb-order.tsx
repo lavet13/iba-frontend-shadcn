@@ -18,7 +18,6 @@ import {
 
 import { useCreateWbOrder } from '@/features/wb-order-by-id';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
 import { PhoneInput } from '@/components/phone-input';
 import { FileUploader } from '@/components/file-uploader';
 import {
@@ -32,6 +31,7 @@ import CircularProgress from '@/components/circular-progress';
 import { cn } from '@/lib/utils';
 import { BorderBeam } from '@/components/ui/border-beam';
 import { FormButton } from '@/components/form-button';
+import { SonnerSpinner } from '@/components/sonner-spinner';
 
 const FormSchema = z
   .object({
@@ -163,8 +163,9 @@ const WbOrderPage: FC = () => {
     mutateAsync: createOrder,
     data,
     uploadProgress,
-    resetProgress,
+    isAborting,
   } = useCreateWbOrder();
+  console.log({ uploadProgress });
 
   useEffect(() => {
     if (data?.saveWbOrder.qrCodeFile) {
@@ -202,7 +203,6 @@ const WbOrderPage: FC = () => {
       form.reset();
 
       toast.success('Заявка оформлена!', { position: 'bottom-center' });
-      resetProgress();
     } catch (error) {
       console.error(error);
       if (isGraphQLRequestError(error)) {
@@ -223,7 +223,7 @@ const WbOrderPage: FC = () => {
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
-          className='w-full sm:max-w-screen-sm space-y-6 mx-auto'
+          className='w-full sm:max-w-screen-sm mx-auto'
         >
           <div className='relative overflow-hidden w-full h-full border rounded-xl p-6'>
             <div className='flex flex-col space-y-1.5 mb-6'>
@@ -297,7 +297,6 @@ const WbOrderPage: FC = () => {
                   control={form.control}
                   name='QR'
                   render={({ field: { value, onChange, ref, ...field } }) => {
-                    console.log({ field });
                     return (
                       <FormItem className='sm:col-span-2'>
                         <FormLabel>QR-код для получения заказа</FormLabel>
@@ -371,24 +370,24 @@ const WbOrderPage: FC = () => {
               <div className='sm:grid sm:grid-cols-[repeat(auto-fill,_minmax(17rem,_1fr))] gap-1 gap-y-2'>
                 <FormButton
                   disabled={isSubmitting}
-                  className={'w-full sm:w-auto col-start-1 col-end-2'}
+                  className={`w-full sm:w-auto col-start-1 col-end-2`}
                   type='submit'
                 >
                   {isSubmitting ? (
                     <>
-                      <CircularProgress
+                      {isAborting ? <CircularProgress
                         value={uploadProgress.percent}
                         strokeWidth={3}
                         className={cn(
-                          'transition-all duration-300 delay-100 h-4',
-                          uploadProgress.percent < 100
+                          'transition-all duration-300 h-4',
+                          !uploadProgress.isComplete
                             ? 'w-4 mr-2 scale-1'
-                            : 'w-2 scale-0 mr-1 ml-1',
+                            : 'w-4 scale-1 mr-2 animate-slow-pulse',
                         )}
-                      />
-                      {uploadProgress.percent < 100
+                      /> : <SonnerSpinner />}
+                      {!uploadProgress.isComplete
                         ? 'Пожалуйста подождите'
-                        : 'Подтверждение'}
+                        : <span className="animate-slow-pulse transition-all duration-300">Подтверждение</span>}
                     </>
                   ) : (
                     'Зарегестрировать'
@@ -396,7 +395,7 @@ const WbOrderPage: FC = () => {
                 </FormButton>
               </div>
             </div>
-            <BorderBeam size={400} className='border rounded-xl' />
+            <BorderBeam className='border rounded-xl' />
           </div>
         </form>
       </Form>

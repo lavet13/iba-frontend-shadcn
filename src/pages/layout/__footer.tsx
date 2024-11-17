@@ -1,5 +1,5 @@
 import { FC, ReactNode, useCallback } from 'react';
-import { Button, buttonVariants } from '@/components/ui/button';
+import { buttonVariants } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { Icons } from '@/components/icons';
 import {
@@ -58,25 +58,25 @@ const Footer: FC = () => {
             <Link
               className={cn(
                 buttonVariants({ variant: 'ghost', size: 'icon' }),
-                'size-10',
+                '[&_svg]:size-5'
               )}
               target='_blank'
               rel='noreferrer'
               to='https://vk.com/id56419815'
             >
-              <Icons.vkontakte className='size-7 fill-foreground transition-colors' />
+              <Icons.vkontakte className='fill-foreground transition-colors' />
               <span className='sr-only'>VKontakte</span>
             </Link>
             <Link
               className={cn(
                 buttonVariants({ variant: 'ghost', size: 'icon' }),
-                'size-10',
+                '[&_svg]:size-5'
               )}
               target='_blank'
               rel='noreferrer'
               to='https://t.me/JaBBaRoV_JR'
             >
-              <Icons.telegram className="size-6 fill-foreground transition-colors" />
+              <Icons.telegram className="fill-foreground transition-colors" />
               <span className='sr-only'>Telegram</span>
             </Link>
           </div>

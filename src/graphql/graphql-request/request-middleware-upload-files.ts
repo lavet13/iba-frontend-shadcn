@@ -1,18 +1,26 @@
-import { RequestMiddleware } from "graphql-request";
-import { set, isArray } from "lodash-es";
+import { RequestInitExtended, RequestMiddleware } from 'graphql-request';
+import { set, isArray } from 'lodash-es';
+import { AbortHandler } from '@/graphql/graphql-request/client';
 
 const isExtractableFile = <ValueType>(value: ValueType) => {
   return (
-    (typeof File !== "undefined" && value instanceof File) ||
-    (typeof Blob !== "undefined" && value instanceof Blob) ||
-    (typeof Buffer !== "undefined" && value instanceof Buffer) ||
-    (typeof value === `object` && value !== null && `pipe` in value && typeof value.pipe === `function`)
+    (typeof File !== 'undefined' && value instanceof File) ||
+    (typeof Blob !== 'undefined' && value instanceof Blob) ||
+    (typeof Buffer !== 'undefined' && value instanceof Buffer) ||
+    (typeof value === `object` &&
+      value !== null &&
+      `pipe` in value &&
+      typeof value.pipe === `function`)
   );
 };
 
 //@ts-ignore
 const isPlainObject = <T>(value: T): value is Object => value && [undefined, Object].includes(value.constructor);
-const recursiveExtractFiles = (variableKey: string, variableValue: any, prefix: string): any => {
+const recursiveExtractFiles = (
+  variableKey: string,
+  variableValue: any,
+  prefix: string,
+): any => {
   if (isExtractableFile(variableValue)) {
     return [
       {
@@ -22,7 +30,10 @@ const recursiveExtractFiles = (variableKey: string, variableValue: any, prefix: 
     ];
   }
 
-  if (isArray(variableValue) && variableValue.every((item) => isExtractableFile(item))) {
+  if (
+    isArray(variableValue) &&
+    variableValue.every(item => isExtractableFile(item))
+  ) {
     return variableValue.map((file, fileIndex) => {
       return {
         variableKey: [`${prefix}.${variableKey}.${fileIndex}`],
@@ -33,7 +44,9 @@ const recursiveExtractFiles = (variableKey: string, variableValue: any, prefix: 
 
   if (isPlainObject(variableValue)) {
     const ggg = Object.entries(variableValue)
-      .map(([key, value]: any) => recursiveExtractFiles(key, value, `${prefix}.${variableKey}`))
+      .map(([key, value]: any) =>
+        recursiveExtractFiles(key, value, `${prefix}.${variableKey}`),
+      )
       .flat();
 
     return ggg;
@@ -42,10 +55,21 @@ const recursiveExtractFiles = (variableKey: string, variableValue: any, prefix: 
   return [];
 };
 
-export const requestMiddlewareUploadFiles: RequestMiddleware = async (request) => {
-  const files = Object.entries(request.variables || {}).flatMap(([variableKey, variableValue]) => {
-    return recursiveExtractFiles(variableKey, variableValue, "variables");
-  });
+type Request = RequestInitExtended & {
+  variables?: {
+    progressCallback?: (percent: string) => void;
+    onAbortPossible?: (abortHandler: AbortHandler) => void;
+  };
+};
+
+export const requestMiddlewareUploadFiles: RequestMiddleware = async (
+  request: Request,
+) => {
+  const files = Object.entries(request.variables || {}).flatMap(
+    ([variableKey, variableValue]) => {
+      return recursiveExtractFiles(variableKey, variableValue, 'variables');
+    },
+  );
 
   if (!files.length) {
     return request;
@@ -57,7 +81,7 @@ export const requestMiddlewareUploadFiles: RequestMiddleware = async (request) =
     //remove file here to reduce request size
     set(parsedBody, file.variableKey[0], null);
   }
-  form.append("operations", JSON.stringify(parsedBody));
+  form.append('operations', JSON.stringify(parsedBody));
 
   const map = files.reduce((accumulator, { variableKey }, index) => {
     return {
@@ -66,7 +90,7 @@ export const requestMiddlewareUploadFiles: RequestMiddleware = async (request) =
     };
   }, {});
 
-  form.append("map", JSON.stringify(map));
+  form.append('map', JSON.stringify(map));
 
   for (let index = 0; index < files.length; index++) {
     const { file } = files[index];
@@ -74,15 +98,20 @@ export const requestMiddlewareUploadFiles: RequestMiddleware = async (request) =
     form.append(index.toString(), file);
   }
 
-  const { "Content-Type": _, ...newHeaders } = request.headers as Record<string, string>;
+  const { 'Content-Type': _, ...newHeaders } = request.headers as Record<
+    string,
+    string
+  >;
 
   const progressCallback = request.variables?.progressCallback;
-  console.log({ progressCallback });
+  const onAbortPossible = request.variables?.onAbortPossible;
+  console.log({ progressCallback, onAbortPossible });
 
   return {
     ...request,
     body: form,
     headers: newHeaders,
     progressCallback,
+    onAbortPossible,
   };
 };
