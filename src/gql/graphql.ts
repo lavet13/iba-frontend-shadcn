@@ -45,18 +45,15 @@ export enum SearchTypeWbOrders {
   WbPhone = 'WB_PHONE'
 }
 
-export type SearchWbOrdersInput = {
-  after?: InputMaybe<Scalars['BigInt']['input']>;
-  before?: InputMaybe<Scalars['BigInt']['input']>;
-  query: Scalars['String']['input'];
-  searchType: SearchTypeWbOrders;
-  take?: InputMaybe<Scalars['Int']['input']>;
-};
-
 export type SignupInput = {
   email: Scalars['String']['input'];
   name: Scalars['String']['input'];
   password: Scalars['String']['input'];
+};
+
+export type SortingState = {
+  desc: Scalars['Boolean']['input'];
+  id: Scalars['String']['input'];
 };
 
 export type UpdateWbInput = {
@@ -83,7 +80,7 @@ export type WbOrdersInput = {
   after?: InputMaybe<Scalars['BigInt']['input']>;
   before?: InputMaybe<Scalars['BigInt']['input']>;
   query: Scalars['String']['input'];
-  searchType: Array<SearchTypeWbOrders>;
+  sorting: Array<SortingState>;
   status?: InputMaybe<OrderStatus>;
   take?: InputMaybe<Scalars['Int']['input']>;
 };

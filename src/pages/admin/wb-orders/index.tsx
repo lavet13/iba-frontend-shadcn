@@ -1,12 +1,15 @@
 import { useInfiniteWbOrders } from '@/features/wb-orders';
-import { FC, useEffect, useMemo, useRef } from 'react';
+import { FC, useEffect, useMemo, useRef, useState } from 'react';
 import {
   flexRender,
   getCoreRowModel,
   Table as ReactTable,
+  VisibilityState,
+  SortingState,
+  getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table';
-import { columns } from '@/pages/admin/wb-orders/columns';
+import { columns, columnTranslations } from '@/pages/admin/wb-orders/columns';
 import { WbOrdersQuery } from '@/gql/graphql';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { SonnerSpinner } from '@/components/sonner-spinner';
@@ -19,6 +22,13 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Button } from '@/components/ui/button';
 
 type WbOrder = WbOrdersQuery['wbOrders']['edges'][number];
 
@@ -57,43 +67,57 @@ const TableCellSkeleton: FC<TableCellSkeletonProps<WbOrder>> = ({ table }) => {
 };
 
 const WbOrders: FC = () => {
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [columnVisibility, setColumnVisibility] = useState({});
   const {
+    status,
+    fetchStatus,
     data,
     hasNextPage,
     isFetchingNextPage,
     fetchNextPage,
-    isPending,
     isFetching,
+    isPending,
     isError,
     error,
   } = useInfiniteWbOrders({
-    take: 1,
+    take: import.meta.env.DEV ? 1 : 30,
     query: '',
+    sorting,
   });
 
+  console.log({ sorting });
   const flatData = useMemo(
     () => data?.pages.flatMap(page => page.wbOrders.edges) ?? [],
     [data],
   );
 
-  console.log({ data, flatData });
+  import.meta.env.DEV && console.log({ data, flatData });
+  console.log({ fetchStatus, status });
 
   const table = useReactTable({
     data: flatData,
     columns,
     getCoreRowModel: getCoreRowModel(),
+    onSortingChange: setSorting,
+    getSortedRowModel: getSortedRowModel(),
+    onColumnVisibilityChange: setColumnVisibility,
+    state: {
+      sorting,
+      columnVisibility,
+    },
     manualPagination: true,
     debugTable: true,
   });
 
   const { rows } = table.getRowModel();
-  console.log({ rows });
+  import.meta.env.DEV && console.log({ rows });
 
   const tableContainerRef = useRef<HTMLDivElement | null>(null);
   const rowVirtualizer = useVirtualizer({
     count: hasNextPage ? rows.length + 1 : rows.length,
     getScrollElement: () => tableContainerRef.current,
-    estimateSize: () => 71,
+    estimateSize: () => 80,
     //measure dynamic row height, except in firefox because it measures table border height incorrectly
     measureElement:
       typeof window !== 'undefined' &&
@@ -124,16 +148,37 @@ const WbOrders: FC = () => {
     rowVirtualizer.getVirtualItems(),
   ]);
 
-  if (isPending) {
-    return <SonnerSpinner />;
-  }
-
   if (isError) {
     throw error;
   }
 
   return (
-    <div className='md:container'>
+    <div className='container space-y-2'>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant='outline' className='ml-auto'>
+            Скрыть столбцы
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align='end'>
+          {table
+            .getAllColumns()
+            .filter(column => column.getCanHide())
+            .map(column => {
+              console.log({ column });
+              return (
+                <DropdownMenuCheckboxItem
+                  key={column.id}
+                  className='capitalize'
+                  checked={column.getIsVisible()}
+                  onCheckedChange={value => column.toggleVisibility(!!value)}
+                >
+                  {columnTranslations[column.id] ?? 'no-name'}
+                </DropdownMenuCheckboxItem>
+              );
+            })}
+        </DropdownMenuContent>
+      </DropdownMenu>
       <div
         ref={tableContainerRef}
         className='max-w-fit overflow-auto w-full relative max-h-[700px] rounded-md border'
@@ -173,7 +218,10 @@ const WbOrders: FC = () => {
           <TableBody
             style={{
               display: 'grid',
-              height: `${rowVirtualizer.getTotalSize()}px`, //tells scrollbar how big the table is
+              height:
+                rowVirtualizer.getTotalSize() > 0
+                  ? `${rowVirtualizer.getTotalSize()}px`
+                  : 'auto', //tells scrollbar how big the table is
               position: 'relative',
             }}
           >
@@ -233,6 +281,16 @@ const WbOrders: FC = () => {
                   </TableRow>
                 );
               })
+            ) : isPending ? (
+              <TableRow
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  width: '100%',
+                }}
+                >
+                <TableCellSkeleton table={table} />
+              </TableRow>
             ) : (
               <TableRow>
                 <TableCell

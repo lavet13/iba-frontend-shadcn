@@ -6,6 +6,7 @@ import { InitialDataInfiniteOptions } from '@/types/initial-data-infinite-option
 import { useNavigate } from 'react-router-dom';
 import { isGraphQLRequestError } from '@/types/is-graphql-request-error';
 import { OrderStatus } from '@/gql/graphql';
+import { SortingState } from '@tanstack/react-table';
 
 type TPageParam = {
   after: number | null;
@@ -15,12 +16,14 @@ type UseInfiniteWbOrdersProps = {
   take: number;
   status?: OrderStatus | 'ALL';
   query: string;
+  sorting: SortingState,
   searchType?: SearchTypeWbOrders | 'ALL';
   options?: InitialDataInfiniteOptions<WbOrdersQuery, TPageParam>;
 };
 
 export const useInfiniteWbOrders = ({
   query,
+  sorting,
   searchType = 'ALL',
   take = 30,
   status = 'ALL',
@@ -56,16 +59,14 @@ export const useInfiniteWbOrders = ({
   return useInfiniteQuery({
     queryKey: [
       (wbOrders.definitions[0] as any).name.value,
-      { input: { take, status, query, searchType } },
+      { input: { take, status, query, sorting } },
     ],
     queryFn: async ({ pageParam }) => {
       try {
         return await client.request(wbOrders, {
           input: {
+            sorting,
             query,
-            ...(searchType === 'ALL'
-              ? { searchType: Object.values(SearchTypeWbOrders) }
-              : { searchType: [searchType] }),
             take,
             after: pageParam.after,
             ...(status === 'ALL' ? {} : { status }),
